@@ -1,10 +1,8 @@
-import { defineStore } from "pinia";
-import { ref } from "vue";
+import { defineStore } from 'pinia'
+import { ref } from 'vue'
 
-export const useTemplateStore = ('template', () => {
-    const loading = ref()
+export const useTemplateStore = defineStore('template', () => {
+  const loading = ref(false)
 
-    return {
-        loading
-    }
+  return { loading }
 })

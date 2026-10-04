@@ -8,6 +8,7 @@ export const usePastoralStore = defineStore('pastoral', () => {
     const state = reactive({
         pastorals: null,
         errorText: '',
+        haveError: false,
     })
 
     //stores
@@ -16,12 +17,14 @@ export const usePastoralStore = defineStore('pastoral', () => {
     // Computeds, use just this in components
     const pastorals = computed(() => state.pastorals)
     const errorText = computed(() => state.errorText)
+    const haveError = computed(() => state.haveError)
 
 
     // get all pastorals async function
     async function getAllPastorals() {
         try {
-            templateStore.loading.value = true
+            templateStore.loading = true
+            state.haveError = false
             state.pastorals = null
 
             const response = await pastoralApi.getAll()
@@ -29,12 +32,12 @@ export const usePastoralStore = defineStore('pastoral', () => {
             state.pastorals = response.data
 
             console.log(response.data)
-            templateStore.loading.value = false
         } catch(error) {
             console.error(error)
+            state.haveError = true
             state.errorText = error
         } finally {
-            templateStore.loading.value = false
+            templateStore.loading = false
         }
     }
 
@@ -43,6 +46,7 @@ export const usePastoralStore = defineStore('pastoral', () => {
 
         //computeds
         pastorals,
-        errorText
+        errorText,
+        haveError,
     }
 })

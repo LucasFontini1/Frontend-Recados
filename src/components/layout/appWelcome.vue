@@ -23,7 +23,7 @@
     p.life{
         color: #0A4C34;
         font-size: 20px;
-        margin-top: 10px;
+        margin-top: 40px;
         font-family: 'comfortaa';
     }
 
@@ -32,6 +32,8 @@
         justify-content: space-between;
         align-items: center;
         margin-top: 20px;
+        padding-bottom: 25px;
+        border-bottom: 1px solid #647273;
     }
 
     div.left{
