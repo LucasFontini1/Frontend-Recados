@@ -1,222 +1,295 @@
+
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, ref, onMounted, watch } from 'vue'
 import { usePastoralStore } from '@/stores/pastoralStore'
 
 const pastoralStore = usePastoralStore()
-const filterActive = ref(null)
+
+// Estados visuais do componente
+const search = ref('')
 const isOpen = ref(false)
-const dropdown = ref(null)
 
-const pastorals = computed(() => {
-  const data = pastoralStore.pastorals
-  if (Array.isArray(data)) return data
-  return Array.isArray(data?.results) ? data.results : []
-})
+// Dados compartilhados que vêm da store
+const pastorals = computed(() => pastoralStore.pastorals)
 
-const selectedPastoral = computed(() =>
-  pastorals.value.find((pastoral) => pastoral.id === filterActive.value),
+const selectedPastoral = computed(
+  () => pastoralStore.selectedPastoral,
 )
 
-function selectPastoral(id) {
-  filterActive.value = id
+// Pesquisa as pastorais pelo nome
+const filteredPastorals = computed(() => {
+  const term = search.value.trim().toLocaleLowerCase('pt-BR')
+
+  return pastorals.value.filter((pastoral) =>
+    pastoral.name.toLocaleLowerCase('pt-BR').includes(term),
+  )
+})
+
+// Seleciona uma pastoral utilizando a store
+function selectPastoral(pastoral) {
+  pastoralStore.selectPastoral(pastoral?.id ?? null)
+
+  search.value = pastoral?.name ?? ''
   isOpen.value = false
 }
 
-function closeOnOutsideClick(event) {
-  if (!dropdown.value?.contains(event.target)) {
-    isOpen.value = false
-  }
+// Atualiza a pesquisa quando o usuário digita
+function onSearch(value) {
+  search.value = value
+
+  // Limpa a seleção anterior
+  pastoralStore.selectPastoral(null)
+
+  isOpen.value = true
 }
 
-function closeOnEscape(event) {
-  if (event.key === 'Escape') {
-    isOpen.value = false
-  }
-}
+// Mantém o texto sincronizado com a store
+watch(
+  selectedPastoral,
+  (pastoral) => {
+    if (!isOpen.value) {
+      search.value = pastoral?.name ?? ''
+    }
+  },
+  { immediate: true },
+)
 
+// Busca as pastorais ao montar o componente
 onMounted(() => {
   pastoralStore.getAllPastorals()
-  document.addEventListener('pointerdown', closeOnOutsideClick)
-  document.addEventListener('keydown', closeOnEscape)
-})
-
-onBeforeUnmount(() => {
-  document.removeEventListener('pointerdown', closeOnOutsideClick)
-  document.removeEventListener('keydown', closeOnEscape)
 })
 </script>
 
 <template>
-  <div class="total" v-if="!pastoralStore.haveError">
-    <label class="pastorals" id="pastoral-filter-label">Pastorais</label>
-    <div ref="dropdown" class="dropdown">
-      <button
-        class="dropdown-trigger"
-        type="button"
-        aria-labelledby="pastoral-filter-label"
-        aria-haspopup="listbox"
+  <div class="pastoral-filter">
+    <label for="pastoral-search">Pastorais</label>
+
+    <div class="search-container">
+      <!-- Bolinha da pastoral selecionada -->
+      <span
+        v-if="selectedPastoral"
+        class="selected-circle"
+        :style="{
+          backgroundColor: selectedPastoral.color,
+        }"
+      ></span>
+
+      <!-- Campo de pesquisa -->
+      <input
+        id="pastoral-search"
+        :value="search"
+        type="text"
+        placeholder="Pesquisar pastoral..."
+        autocomplete="off"
+        :class="{ 'has-selection': selectedPastoral }"
         :aria-expanded="isOpen"
-        @click="isOpen = !isOpen"
+        aria-controls="pastoral-options"
+        @input="onSearch($event.target.value)"
+        @focus="isOpen = true"
+        @keydown.esc="isOpen = false"
+      />
+
+      <!-- Botão para limpar -->
+      <button
+        v-if="search || selectedPastoral"
+        type="button"
+        class="clear-button"
+        aria-label="Limpar filtro"
+        @click="selectPastoral(null)"
       >
-        <span
-          v-if="selectedPastoral"
-          class="circle"
-          :style="{ '--pastoral-color': selectedPastoral.color }"
-          aria-hidden="true"
-        ></span>
-        <span class="selected-name">
-          {{ selectedPastoral?.name ?? 'Todas as pastorais' }}
-        </span>
-        <span class="chevron" :class="{ open: isOpen }" aria-hidden="true"></span>
+        ×
       </button>
 
-      <ul v-if="isOpen" class="dropdown-menu" role="listbox" aria-label="Pastorais">
+      <!-- Lista de pastorais -->
+      <ul
+        v-if="isOpen"
+        id="pastoral-options"
+        class="options"
+      >
         <li>
           <button
-            class="dropdown-option"
             type="button"
-            role="option"
-            :aria-selected="filterActive === null"
+            class="option-button"
             @click="selectPastoral(null)"
           >
             Todas as pastorais
           </button>
         </li>
-        <li v-for="pastoral in pastorals" :key="pastoral.id">
+
+        <li
+          v-for="pastoral in filteredPastorals"
+          :key="pastoral.id"
+        >
           <button
-            class="dropdown-option"
             type="button"
-            role="option"
-            :aria-selected="filterActive === pastoral.id"
-            @click="selectPastoral(pastoral.id)"
+            class="option-button"
+            @click="selectPastoral(pastoral)"
           >
             <span
               class="circle"
-              :style="{ '--pastoral-color': pastoral.color }"
-              aria-hidden="true"
+              :style="{
+                backgroundColor: pastoral.color,
+              }"
             ></span>
-            <span>{{ pastoral.name }}</span>
+
+            {{ pastoral.name }}
           </button>
         </li>
+
+        <li
+          v-if="filteredPastorals.length === 0"
+          class="empty"
+        >
+          Nenhuma pastoral encontrada
+        </li>
       </ul>
+
+      <!-- Mensagem de erro -->
+      <p v-if="pastoralStore.haveError" class="error">
+        {{ pastoralStore.errorText }}
+      </p>
     </div>
   </div>
-  <div class="error" v-if="pastoralStore.haveError">
-    <p class="err">{{ pastoralStore.errorText }}</p>
-  </div>
 </template>
+
 <style scoped>
-.total {
+.pastoral-filter {
   display: flex;
+  align-items: center;
   gap: 12px;
-  align-items: center;
   margin-top: 25px;
-  font-family: 'comfortaa';
+  font-family: 'Comfortaa', sans-serif;
 }
 
-.pastorals {
-  color: #4b5563;
-  font-size: 0.9rem;
+.pastoral-filter label {
+  font-size: 14px;
   font-weight: 600;
+  color: #4b5563;
 }
 
-.dropdown {
+.search-container {
   position: relative;
-  min-width: 220px;
+  width: 280px;
 }
 
-.dropdown-trigger {
-  display: flex;
+.search-container input {
   width: 100%;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
+  padding: 12px 35px 12px 14px;
   border: 1px solid #d1d5db;
   border-radius: 10px;
-  background: #fff;
-  color: #111827;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+  background: white;
+  font-family: inherit;
 }
 
-.dropdown-trigger:hover,
-.dropdown-trigger[aria-expanded='true'] {
-  border-color: #9ca3af;
-  box-shadow: 0 0 0 3px rgb(156 163 175 / 15%);
+.search-container input:focus {
+  border-color: #0a4c34;
+  box-shadow: 0 0 0 3px #0a4c3420;
 }
 
-.selected-name {
-  overflow: hidden;
-  flex: 1;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+/* Espaço para a bolinha selecionada */
+.search-container input.has-selection {
+  padding-left: 38px;
 }
 
-.circle {
-  display: inline-block;
+/* Bolinha dentro do campo */
+.selected-circle {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  transform: translateY(-50%);
   width: 10px;
   height: 10px;
-  flex: 0 0 10px;
   border-radius: 50%;
-  background-color: var(--pastoral-color, #9ca3af);
+  z-index: 1;
+  pointer-events: none;
 }
 
-.chevron {
-  width: 8px;
-  height: 8px;
-  flex: 0 0 8px;
-  border-right: 2px solid currentColor;
-  border-bottom: 2px solid currentColor;
-  transform: rotate(45deg) translateY(-2px);
-  transition: transform 0.2s;
-}
-
-.chevron.open {
-  transform: rotate(225deg) translate(-1px, -1px);
-}
-
-.dropdown-menu {
+/* Botão de limpar */
+.clear-button {
   position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
+  right: 10px;
+  top: 8px;
+  border: none;
+  background: transparent;
+  font-size: 22px;
+  cursor: pointer;
+  color: #647273;
+}
+
+.clear-button:hover {
+  color: #0a4c34;
+}
+
+/* Dropdown */
+.options {
+  position: absolute;
+  top: calc(100% + 5px);
   left: 0;
-  z-index: 20;
-  max-height: 260px;
+  width: 100%;
+  max-height: 250px;
   overflow-y: auto;
-  margin: 0;
-  padding: 5px;
-  list-style: none;
+  background: white;
   border: 1px solid #e5e7eb;
   border-radius: 10px;
-  background: #fff;
-  box-shadow: 0 10px 25px rgb(17 24 39 / 12%);
+  list-style: none;
+  z-index: 100;
+  box-shadow: 0 8px 20px #00000015;
 }
 
-.dropdown-option {
+.options li {
+  font-size: 13px;
+}
+
+.option-button {
   display: flex;
-  width: 100%;
   align-items: center;
   gap: 10px;
-  padding: 9px 10px;
-  border: 0;
-  border-radius: 7px;
+  width: 100%;
+  padding: 12px;
+  border: none;
   background: transparent;
   color: #111827;
-  font: inherit;
+  font-family: inherit;
+  font-size: 13px;
   text-align: left;
   cursor: pointer;
 }
 
-.dropdown-option:hover,
-.dropdown-option[aria-selected='true'] {
-  background: #f3f4f6;
+.option-button:hover,
+.option-button:focus-visible {
+  background: #eef5f1;
 }
 
-.dropdown-option:focus-visible,
-.dropdown-trigger:focus-visible {
-  outline: 2px solid #6b7280;
-  outline-offset: 2px;
+/* Bolinhas das opções */
+.circle {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Nenhuma pastoral encontrada */
+.options .empty {
+  padding: 12px;
+  color: #6b7280;
+  cursor: default;
+}
+
+.error {
+  margin-top: 8px;
+  color: #dc2626;
+  font-size: 12px;
+}
+
+@media (max-width: 600px) {
+  .pastoral-filter {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .search-container {
+    width: 100%;
+  }
 }
 </style>
