@@ -2,6 +2,7 @@
 import appWelcome from '@/components/layout/appWelcome.vue'
 import pastoralFilterComponent from '@/components/filters/pastoralFilterComponent.vue'
 import categoryFilterComponent from '@/components/filters/categoryFilterComponent.vue'
+import MessageListComponent from '@/components/lists/MessageListComponent.vue';
 </script>
 
 <template>
@@ -11,6 +12,7 @@ import categoryFilterComponent from '@/components/filters/categoryFilterComponen
       <pastoralFilterComponent />
       <categoryFilterComponent />
     </div>
+    <MessageListComponent />
   </div>
 </template>
 
