@@ -1,11 +1,12 @@
 
 <script setup>
-import { computed, ref, onMounted, watch } from 'vue'
+import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
 import { usePastoralStore } from '@/stores/pastoralStore'
 
 const pastoralStore = usePastoralStore()
 
 // Estados visuais do componente
+const filterElement = ref(null)
 const search = ref('')
 const isOpen = ref(false)
 
@@ -54,14 +55,25 @@ watch(
   { immediate: true },
 )
 
+function closeOnOutsideClick(event) {
+  if (!filterElement.value?.contains(event.target)) {
+    isOpen.value = false
+  }
+}
+
 // Busca as pastorais ao montar o componente
 onMounted(() => {
   pastoralStore.getAllPastorals()
+  document.addEventListener('pointerdown', closeOnOutsideClick)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('pointerdown', closeOnOutsideClick)
 })
 </script>
 
 <template>
-  <div class="pastoral-filter">
+  <div ref="filterElement" class="pastoral-filter">
     <label for="pastoral-search">Pastorais</label>
 
     <div class="search-container">

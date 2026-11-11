@@ -1,10 +1,11 @@
 <script setup>
-import { computed, ref, onMounted, watch } from 'vue'
+import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
 import { useCategoryStore } from '@/stores/categoryStore'
 
 const categoryStore = useCategoryStore()
 
 // Estados visuais do componente
+const filterElement = ref(null)
 const search = ref('')
 const isOpen = ref(false)
 
@@ -46,14 +47,25 @@ watch(
   { immediate: true },
 )
 
+function closeOnOutsideClick(event) {
+  if (!filterElement.value?.contains(event.target)) {
+    isOpen.value = false
+  }
+}
+
 // Busca as categorias ao montar o componente
 onMounted(() => {
   categoryStore.getAllCategories()
+  document.addEventListener('pointerdown', closeOnOutsideClick)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('pointerdown', closeOnOutsideClick)
 })
 </script>
 
 <template>
-  <div class="category-filter">
+  <div ref="filterElement" class="category-filter">
     <label for="category-search">Categorias</label>
 
     <div class="search-container">
