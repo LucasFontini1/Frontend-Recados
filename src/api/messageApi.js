@@ -2,7 +2,10 @@ import api from "./config";
 
 const messageApi = {
     getAll() {
-        return api.get('recados/')
+        return api.get('recados/?is_notice=false')
+    },
+    getNotices() {
+        return api.get('recados/?is_notice=true')
     },
     getMessageById(id) {
         return api.get(`recados/${id}/`)

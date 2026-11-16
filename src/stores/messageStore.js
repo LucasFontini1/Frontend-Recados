@@ -7,11 +7,13 @@ export const useMessageStore = defineStore('message', () => {
         messages: [],
         errorText: '',
         haveError: false,
+        notices: [],
     })
 
     const messages = computed(() => state.messages)
     const errorText = computed(() => state.errorText)
     const haveError = computed(() => state.haveError)
+    const notices = computed(() => state.notices)
 
     const getAllMessages = async () => {
         try {
@@ -23,6 +25,11 @@ export const useMessageStore = defineStore('message', () => {
                 : response.data?.results ?? []
 
             console.log('Mensagens carregadas com sucesso:', state.messages)
+
+            const noticesResponse = await messageApi.getNotices()
+            state.notices = Array.isArray(noticesResponse.data)
+                ? noticesResponse.data
+                : noticesResponse.data?.results ?? []
         } catch (error) {
             console.error('Erro ao buscar mensagens:', error)
             state.haveError = true
@@ -34,6 +41,7 @@ export const useMessageStore = defineStore('message', () => {
         messages,
         errorText,
         haveError,
+        notices,
         getAllMessages,
     }
 })

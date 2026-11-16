@@ -111,6 +111,9 @@ onMounted(async () => {
 </script>
 
 <template>
+  <h1>
+    <span class="mdi mdi-calendar-range"></span>Próximos Eventos e Datas
+  </h1>
   <ul
     class="messages"
     :class="{ 'is-dragging': isDragging, 'is-settling': isSettling }"
@@ -133,16 +136,18 @@ onMounted(async () => {
 
 <style scoped>
 .messages {
+  --visible-cards: 1;
   display: flex;
   flex-wrap: nowrap;
   gap: 20px;
   width: 100%;
   min-width: 0;
-  margin-top: 20px;
+  margin-top: 10px;
   padding: 4px 2px 16px;
   overflow-x: auto;
   overscroll-behavior-x: contain;
-  scroll-snap-type: x proximity;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 2px;
   scrollbar-width: thin;
   scrollbar-color: #7ca99b #e1e9e6;
   list-style: none;
@@ -165,7 +170,7 @@ onMounted(async () => {
 }
 
 .messages > li {
-  flex: 0 0 min(340px, 88%);
+  flex: 0 0 calc((100% - (var(--visible-cards) - 1) * 20px) / var(--visible-cards));
   min-width: 0;
   scroll-snap-align: start;
 }
@@ -193,5 +198,34 @@ onMounted(async () => {
 .messages::-webkit-scrollbar-thumb {
   border-radius: 8px;
   background: #7ca99b;
+}
+
+h1 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 28px;
+  font-weight: 700;
+  color: #0a6a4c;
+  font-family: 'comfortaa', sans-serif;
+  margin-top: 20px;
+}
+
+@media (min-width: 800px) {
+  .messages {
+    --visible-cards: 2;
+  }
+}
+
+@media (min-width: 1200px) {
+  .messages {
+    --visible-cards: 3;
+  }
+}
+
+@media (min-width: 1600px) {
+  .messages {
+    --visible-cards: 4;
+  }
 }
 </style>

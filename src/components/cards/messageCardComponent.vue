@@ -1,7 +1,5 @@
 <script setup>
 import { computed, ref } from 'vue'
-import { usePastoralStore } from '@/stores/pastoralStore'
-import { useCategoryStore } from '@/stores/categoryStore'
 
 const props = defineProps({
     message: {
@@ -10,17 +8,11 @@ const props = defineProps({
     },
 })
 
-const pastoralStore = usePastoralStore()
-const categoryStore = useCategoryStore()
 const failedImage = ref('')
 const imageUrl = computed(() => props.message.image?.url ?? '')
 const hasImage = computed(() => imageUrl.value && failedImage.value !== imageUrl.value)
-const pastoral = computed(() =>
-    pastoralStore.pastorals.find((item) => item.id === props.message.pastoral),
-)
-const category = computed(() =>
-    categoryStore.categories.find((item) => item.id === props.message.category),
-)
+const pastoral = computed(() => props.message.pastoral)
+const category = computed(() => props.message.category)
 
 const eventDate = computed(() => {
     if (!props.message.event_date) return null
