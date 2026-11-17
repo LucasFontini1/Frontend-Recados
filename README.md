@@ -12,7 +12,7 @@ Interface web do projeto Recados, com Vue 3, Pinia, Axios e Vue Router.
 
 ## Projeto relacionado ou demonstração
 
-[Acessar](https://github.com/LucasFontini1/Backend-recados)
+[Acessar backend](https://github.com/LucasFontini1/Backend-recados)
 
 ## Executar localmente
 
