@@ -84,6 +84,8 @@ const publishedDate = computed(() => {
 
 <style scoped>
 .message-card {
+    min-width: 0;
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
     width: 100%;
