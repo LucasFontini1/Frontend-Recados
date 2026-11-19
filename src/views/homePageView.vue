@@ -20,6 +20,7 @@ import generalNoticesListComponent from '@/components/lists/generalNoticesListCo
 
 <style scoped>
 .filters {
+  min-width: 0;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -27,9 +28,7 @@ import generalNoticesListComponent from '@/components/lists/generalNoticesListCo
 }
 
 @media (max-width: 600px) {
-  .filters {
-    flex-direction: column;
-    align-items: stretch;
-  }
+  .filters { flex-direction: column; align-items: stretch; gap: 12px; margin: 18px 0 24px; }
+  .filters :deep(.pastoral-filter), .filters :deep(.category-filter) { width: 100%; min-width: 0; margin-top: 0; }
 }
 </style>
