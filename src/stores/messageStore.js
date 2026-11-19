@@ -27,9 +27,12 @@ export const useMessageStore = defineStore('message', () => {
             console.log('Mensagens carregadas com sucesso:', state.messages)
 
             const noticesResponse = await messageApi.getNotices()
-            state.notices = Array.isArray(noticesResponse.data)
+            const notices = Array.isArray(noticesResponse.data)
                 ? noticesResponse.data
                 : noticesResponse.data?.results ?? []
+            state.notices = [...notices].sort((a, b) =>
+                new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+            )
         } catch (error) {
             console.error('Erro ao buscar mensagens:', error)
             state.haveError = true
