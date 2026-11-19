@@ -1,4 +1,31 @@
 <script setup>
+import { onMounted } from 'vue'
+import { useMessageStore } from '@/stores/messageStore'
+import { usePastoralStore } from '@/stores/pastoralStore'
+import { useCategoryStore } from '@/stores/categoryStore'
+import homeApi from '@/api/homeApi'
+
+const messageStore = useMessageStore()
+const pastoralStore = usePastoralStore()
+const categoryStore = useCategoryStore()
+
+onMounted(async () => {
+  try {
+    const { data } = await homeApi.get()
+    messageStore.hydrate(data)
+    pastoralStore.hydrate(data.pastorals ?? [])
+    categoryStore.hydrate(data.categories ?? [])
+  } catch (error) {
+    // O fallback mantém a home funcional enquanto o backend é publicado.
+    console.error('Erro ao carregar home agregada:', error)
+    await Promise.all([
+      messageStore.getAllMessages(),
+      pastoralStore.getAllPastorals(),
+      categoryStore.getAllCategories(),
+    ])
+  }
+})
+
 import appWelcome from '@/components/layout/appWelcome.vue'
 import pastoralFilterComponent from '@/components/filters/pastoralFilterComponent.vue'
 import categoryFilterComponent from '@/components/filters/categoryFilterComponent.vue'
