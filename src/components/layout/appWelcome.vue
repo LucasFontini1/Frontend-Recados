@@ -66,4 +66,18 @@
             font-size: 15px;
         }
     }
+
+div.left, div.right, div.right .text { min-width: 0; }
+div.left, div.right { flex: 1; }
+div.right h2, div.left h2 { overflow-wrap: anywhere; }
+@media (max-width: 720px) {
+ p.life { margin-top: 16px; font-size: 14px; }
+ div.principal { flex-direction: column; align-items: stretch; gap: 18px; margin-top: 12px; padding-bottom: 20px; }
+ div.left h2 { font-size: clamp(23px, 7vw, 29px); line-height: 1.32; }
+ div.left p { margin-top: 10px; font-size: 13px; line-height: 1.7; }
+ div.right { width: 100%; border-left: 0; border-radius: 12px; padding: 14px; background: #e7f0eb; gap: 12px; }
+ div.right img { width: 40px; height: 40px; object-fit: contain; flex-shrink: 0; }
+ div.right h2 { font-size: 15px; line-height: 1.5; }
+ div.right p { font-size: 12px; margin-top: 5px; color: #647273; }
+}
 </style>
