@@ -2,7 +2,6 @@
 import { defineStore } from 'pinia'
 import pastoralApi from '@/api/pastoralApi'
 import { computed, reactive } from 'vue'
-import { useTemplateStore } from './templateStore'
 
 export const usePastoralStore = defineStore('pastoral', () => {
   const state = reactive({
@@ -12,7 +11,6 @@ export const usePastoralStore = defineStore('pastoral', () => {
     haveError: false,
   })
 
-  const templateStore = useTemplateStore()
 
   // Estados disponíveis para os componentes
   const pastorals = computed(() => state.pastorals)
@@ -37,9 +35,22 @@ export const usePastoralStore = defineStore('pastoral', () => {
   }
 
   // Busca todas as pastorais no backend
-  async function getAllPastorals() {
+  let lastLoaded = 0
+  let pending = null
+
+  async function getAllPastorals(force = false) {
+    if (pending) return pending
+    if (!force && lastLoaded && Date.now() - lastLoaded < 300_000) return
+    pending = loadItems()
     try {
-      templateStore.loading = true
+      await pending
+    } finally {
+      pending = null
+    }
+  }
+
+  async function loadItems() {
+    try {
       state.haveError = false
       state.errorText = ''
 
@@ -48,14 +59,13 @@ export const usePastoralStore = defineStore('pastoral', () => {
       state.pastorals = Array.isArray(response.data)
         ? response.data
         : response.data?.results ?? []
+      lastLoaded = Date.now()
 
     } catch (error) {
       console.error('Erro ao buscar pastorais:', error)
 
       state.haveError = true
       state.errorText = 'Não foi possível carregar as pastorais.'
-    } finally {
-      templateStore.loading = false
     }
   }
 
