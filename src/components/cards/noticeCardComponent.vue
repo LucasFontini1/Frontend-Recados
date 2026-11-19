@@ -1,6 +1,8 @@
 <script setup>
 import { computed } from 'vue'
 
+const emit = defineEmits(['open-detail'])
+
 const props = defineProps({
   message: {
     type: Object,
@@ -30,6 +32,7 @@ const publishedDate = computed(() => {
       <h2 class="card-title" :title="message.title">{{ message.title }}</h2>
       <p class="card-description">{{ message.text ?? message.content }}</p>
     </div>
+    <button type="button" class="detail-button" @click="emit('open-detail', message)">Ver detalhes <span class="mdi mdi-arrow-top-right" aria-hidden="true"></span></button>
     <footer class="card-footer">
       <div class="card-credit">
         <span v-if="pastoral?.name" class="pastoral" :title="pastoral.name">{{ pastoral.name }}</span>
@@ -140,4 +143,8 @@ const publishedDate = computed(() => {
 time {
   flex-shrink: 0;
 }
+.detail-button { display: flex; align-items: center; gap: 5px; width: fit-content; margin-top: auto; padding: 5px 0; border: 0; background: transparent; color: #0a6a4c; font: inherit; font-size: 11px; font-weight: 700; cursor: pointer; }
+.detail-button:hover { text-decoration: underline; }
+.detail-button:focus-visible { outline: 2px solid #0a6a4c; outline-offset: 3px; border-radius: 3px; }
+.card-footer { margin-top: 8px; padding-top: 12px; }
 </style>
