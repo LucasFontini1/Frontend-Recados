@@ -1,6 +1,6 @@
 <script setup>
 import { useMessageStore } from '@/stores/messageStore'
-import { nextTick, onMounted, onUnmounted, ref } from 'vue'
+import { nextTick, onUnmounted, ref } from 'vue'
 import messageCardComponent from '../cards/messageCardComponent.vue'
 
 const messageStore = useMessageStore()
@@ -105,9 +105,6 @@ onUnmounted(() => {
   isSettling.value = false
 })
 
-onMounted(async () => {
-  await messageStore.getAllMessages()
-})
 </script>
 
 <template>
