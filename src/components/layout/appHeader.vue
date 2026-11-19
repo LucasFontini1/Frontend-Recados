@@ -150,5 +150,6 @@ nav.security {
     white-space: normal; font-size: 12px;
   }
   nav.security button { border-radius: 9px; }
+  nav.security button:last-child { grid-column: 1 / -1; }
 }
 </style>
