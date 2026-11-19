@@ -7,6 +7,11 @@ const messageApi = {
     getNotices() {
         return api.get('recados/?is_notice=true')
     },
+    uploadImage(file) {
+        const formData = new FormData()
+        formData.append('file', file)
+        return api.post('media/images/', formData)
+    },
     getAdminAll() {
         return api.get('recados/?admin_all=1')
     },
