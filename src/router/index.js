@@ -40,7 +40,7 @@ router.beforeEach(async (to) => {
   } catch {
     return { name: 'login' }
   }
-  const isAdmin = auth.user?.is_superuser || auth.user?.groups?.some((group) => group.name === 'admin')
+  const isAdmin = auth.user?.is_superuser || auth.user?.groups?.some((group) => ['admin', 'superadmin'].includes(group.name))
   return isAdmin ? true : { name: 'home' }
 })
 
