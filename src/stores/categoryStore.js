@@ -58,7 +58,14 @@ export const useCategoryStore = defineStore('category', () => {
     }
   }
 
+  function hydrate(data) {
+    state.categories = data
+    state.haveError = false
+    state.errorText = ''
+    lastLoaded = Date.now()
+  }
   return {
+    hydrate,
     categories,
     selectedCategoryId,
     selectedCategory,
