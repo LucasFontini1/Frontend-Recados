@@ -1,150 +1,154 @@
 <script setup>
 import { computed } from 'vue'
 
-const emit = defineEmits(['open-detail'])
-
 const props = defineProps({
-  message: {
-    type: Object,
-    required: true,
-  },
+  message: { type: Object, required: true },
 })
-
+const emit = defineEmits(['open-detail'])
 const pastoral = computed(() => props.message.pastoral)
-const accentColor = computed(() => pastoral.value?.color || props.message.category?.color || '#0a6a4c')
+const category = computed(() => props.message.category)
+const accentColor = computed(() => pastoral.value?.color || category.value?.color || '#0a6a4c')
 const publishedDate = computed(() => {
   if (!props.message.created_at) return ''
   const date = new Date(props.message.created_at)
-  return Number.isNaN(date.getTime())
-    ? ''
-    : new Intl.DateTimeFormat('pt-BR', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-      }).format(date).replace(/\./g, '')
+  return Number.isNaN(date.getTime()) ? '' : date.toLocaleDateString('pt-BR')
 })
 </script>
 
 <template>
   <article class="notice-card" :style="{ '--notice-accent': accentColor }">
-    <div class="card-content">
-      <span class="notice-label">Avisos</span>
-      <h2 class="card-title" :title="message.title">{{ message.title }}</h2>
-      <p class="card-description">{{ message.text ?? message.content }}</p>
+    <div class="card-cover">
+      <span class="cover-icon mdi mdi-bullhorn-outline" aria-hidden="true"></span>
+      <span class="cover-caption">Aviso da comunidade</span>
     </div>
-    <button type="button" class="detail-button" @click="emit('open-detail', message)">Ver detalhes <span class="mdi mdi-arrow-top-right" aria-hidden="true"></span></button>
-    <footer class="card-footer">
-      <div class="card-credit">
-        <span v-if="pastoral?.name" class="pastoral" :title="pastoral.name">{{ pastoral.name }}</span>
-        <span v-if="pastoral?.name && message.autor?.name" class="separator" aria-hidden="true">·</span>
-        <span v-if="message.autor?.name" class="owner" :title="message.autor.name">{{ message.autor.name }}</span>
+
+    <div class="card-content">
+      <div class="card-tags">
+        <span v-if="pastoral?.name" class="tag pastoral-tag" :title="pastoral.name">
+          {{ pastoral.name }}
+        </span>
+        <span v-if="category?.name" class="tag category-tag" :title="category.name">
+          {{ category.name }}
+        </span>
       </div>
-      <time v-if="publishedDate" :datetime="message.created_at">{{ publishedDate }}</time>
-    </footer>
+
+      <h2 class="card-title" :title="message.title">{{ message.title }}</h2>
+      <p class="card-description" :title="message.text ?? message.content">
+        {{ message.text ?? message.content }}
+      </p>
+
+      <button type="button" class="detail-button" @click="emit('open-detail', message)">
+        Ver detalhes <span class="mdi mdi-arrow-top-right" aria-hidden="true"></span>
+      </button>
+
+      <footer class="card-footer">
+        <span class="mdi mdi-bullhorn-outline" aria-hidden="true"></span>
+        <span>{{ publishedDate ? `Publicado em ${publishedDate}` : 'Aviso da comunidade' }}</span>
+      </footer>
+    </div>
   </article>
 </template>
 
 <style scoped>
 .notice-card {
-  min-width: 0;
-  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: 250px;
-  padding: 20px;
+  height: 364px;
+  min-width: 0;
   overflow: hidden;
-  border: 1px solid var(--notice-accent);
-  border-left-width: 4px;
-  border-radius: 6px;
+  border: 1px solid #d6e1df;
+  border-radius: 8px;
   background: #fff;
-  box-shadow: 0 3px 8px #163a2c18;
+  box-shadow: 0 3px 8px #163a2c12;
   color: #18332a;
   font-family: 'Comfortaa', sans-serif;
 }
-
+.card-cover {
+  display: flex;
+  flex: 0 0 158px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: linear-gradient(140deg, #edf7f1, #d9ebe0);
+  color: #0a6a4c;
+}
+.cover-icon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border: 1px solid #afd1be;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--notice-accent);
+  font-size: 27px;
+}
+.cover-caption { font-size: 11px; font-weight: 700; }
 .card-content {
+  display: flex;
   flex: 1;
+  flex-direction: column;
   min-height: 0;
+  padding: 20px 20px 16px;
 }
-
-.notice-label {
-  display: inline-block;
-  padding: 5px 8px;
-  border-radius: 4px;
-  background: #ffe8d6;
-  color: #8a3d2a;
-  font-size: 10px;
-  font-weight: 700;
-  line-height: 13px;
-}
-
-.card-title {
-  display: -webkit-box;
+.card-tags { display: flex; flex: 0 0 25px; align-items: flex-start; gap: 8px; min-width: 0; margin-bottom: 12px; }
+.tag {
+  min-width: 0;
   overflow: hidden;
-  margin: 16px 0 8px;
-  font-size: 15px;
+  padding: 6px 8px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: #009ee9;
+  font-size: 9px;
   font-weight: 700;
-  line-height: 22px;
+  line-height: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pastoral-tag { border-color: var(--notice-accent); color: var(--notice-accent); }
+.category-tag { background: #ecf8ff; }
+.card-title, .card-description {
+  display: -webkit-box;
+  flex-shrink: 0;
+  overflow: hidden;
   overflow-wrap: anywhere;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   line-clamp: 2;
 }
-
-.card-description {
-  display: -webkit-box;
-  overflow: hidden;
-  color: #647273;
-  font-size: 12px;
-  line-height: 21px;
-  white-space: pre-line;
-  overflow-wrap: anywhere;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-  line-clamp: 3;
-}
-
-.card-footer {
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid #d6e1df;
-  color: #647273;
-  font-size: 10px;
-  line-height: 16px;
-}
-
-.card-credit {
+.card-title { max-height: 44px; margin: 0 0 6px; font-size: 16px; font-weight: 700; line-height: 22px; }
+.card-description { max-height: 42px; margin: 0; color: #647273; font-size: 12px; line-height: 21px; white-space: pre-line; }
+.detail-button {
   display: flex;
   align-items: center;
-  gap: 6px;
-  min-width: 0;
-}
-
-.pastoral,
-.owner {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.pastoral {
-  color: var(--notice-accent);
+  gap: 5px;
+  width: fit-content;
+  margin-top: auto;
+  margin-bottom: 8px;
+  padding: 5px 0;
+  border: 0;
+  background: transparent;
+  color: #0a6a4c;
+  font: inherit;
+  font-size: 11px;
   font-weight: 700;
+  cursor: pointer;
 }
-
-.separator,
-time {
-  flex-shrink: 0;
-}
-.detail-button { display: flex; align-items: center; gap: 5px; width: fit-content; margin-top: auto; padding: 5px 0; border: 0; background: transparent; color: #0a6a4c; font: inherit; font-size: 11px; font-weight: 700; cursor: pointer; }
 .detail-button:hover { text-decoration: underline; }
 .detail-button:focus-visible { outline: 2px solid #0a6a4c; outline-offset: 3px; border-radius: 3px; }
-.card-footer { margin-top: 8px; padding-top: 12px; }
+.card-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  margin-top: 0;
+  padding-top: 12px;
+  border-top: 1px solid #d6e1df;
+  color: #647273;
+  font-size: 11px;
+}
+.card-footer .mdi { flex-shrink: 0; color: #0a6a4c; font-size: 15px; }
+.card-footer span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 </style>
