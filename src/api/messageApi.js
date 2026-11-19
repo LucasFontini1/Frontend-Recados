@@ -7,6 +7,9 @@ const messageApi = {
     getNotices() {
         return api.get('recados/?is_notice=true')
     },
+    getAdminAll() {
+        return api.get('recados/?admin_all=1')
+    },
     getMessageById(id) {
         return api.get(`recados/${id}/`)
     },
