@@ -1,9 +1,10 @@
 ﻿<script setup>
 import router from '@/router'
-import { onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
 
 const auth = useAuthStore()
+const isAdmin = computed(() => auth.user?.is_superuser || auth.user?.groups?.some((group) => group.name === 'admin'))
 onMounted(() => {
   auth.refreshUserSession().catch(() => {
     // Erros de conexão não impedem a leitura dos recados públicos.
@@ -25,14 +26,16 @@ function logout() {
           <p>Da comunidade - Um lugar para se encontrar</p>
         </div>
       </div>
-      <div class="security">
+      <nav class="security" aria-label="Menu principal">
+        <RouterLink to="/perguntas" class="header-link">Pergunte à diretoria</RouterLink>
+        <RouterLink v-if="auth.isAuthenticated && isAdmin" to="/admin" class="header-link">Administração</RouterLink>
         <button v-if="!auth.isAuthenticated" @click="router.push('/login')">
           <span class="mdi mdi-security"></span><span class="enter">Entrar</span>
         </button>
         <button v-else @click="logout">
           <span class="mdi mdi-logout" aria-hidden="true"></span><span>Sair</span>
         </button>
-      </div>
+      </nav>
     </div>
   </header>
 </template>
@@ -70,6 +73,10 @@ div.logo {
 }
 
 div.security {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
   & button {
     background-color: #f8fafd;
     border: #d6e1df 1px solid;
@@ -86,7 +93,20 @@ div.security {
     cursor: pointer;
   }
 }
+.header-link {
+  padding: 10px 12px;
+  border-radius: 9px;
+  border: 1px solid #d6e1df;
+  color: #0a4c34;
+  background: #f8fafd;
+  font-size: 12px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.header-link:hover { background: #e8f0eb; }
 @media (max-width: 700px) {
+  div.security { flex-wrap: wrap; justify-content: flex-end; }
+  .header-link { font-size: 11px; padding: 8px; }
   div.total {
     width: 100%;
     gap: 12px;
