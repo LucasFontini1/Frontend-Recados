@@ -1,10 +1,11 @@
 <script setup>
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useMessageStore } from '@/stores/messageStore'
 import { usePastoralStore } from '@/stores/pastoralStore'
 import { useCategoryStore } from '@/stores/categoryStore'
 import homeApi from '@/api/homeApi'
 
+const selectedMessage = ref(null)
 const messageStore = useMessageStore()
 const pastoralStore = usePastoralStore()
 const categoryStore = useCategoryStore()
@@ -31,6 +32,7 @@ import pastoralFilterComponent from '@/components/filters/pastoralFilterComponen
 import categoryFilterComponent from '@/components/filters/categoryFilterComponent.vue'
 import MessageListComponent from '@/components/lists/MessageListComponent.vue';
 import generalNoticesListComponent from '@/components/lists/generalNoticesListComponent.vue';
+import messageDetailModal from '@/components/cards/messageDetailModal.vue'
 </script>
 
 <template>
@@ -40,8 +42,9 @@ import generalNoticesListComponent from '@/components/lists/generalNoticesListCo
       <pastoralFilterComponent />
       <categoryFilterComponent />
     </div>
-    <MessageListComponent />
-    <generalNoticesListComponent />
+    <MessageListComponent @open-detail="selectedMessage = $event" />
+    <generalNoticesListComponent @open-detail="selectedMessage = $event" />
+    <message-detail-modal :message="selectedMessage" @close="selectedMessage = null" />
   </div>
 </template>
 
