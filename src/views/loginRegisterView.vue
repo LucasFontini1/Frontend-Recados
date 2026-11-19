@@ -62,11 +62,11 @@ async function submit() {
     const credentials = { email: form.email.trim(), password: form.password }
     if (isRegister.value) {
       await auth.register({ ...credentials, name: form.name.trim() })
-      mode.value = 'login'
+      await auth.login(credentials)
       form.password = ''
       form.confirmation = ''
       showPassword.value = false
-      successMessage.value = 'Cadastro realizado! Entre com seu e-mail e senha.'
+      await router.push({ name: 'home' })
     } else {
       await auth.login(credentials)
       form.password = ''
