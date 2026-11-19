@@ -121,4 +121,14 @@ button:disabled { opacity: .6; cursor: wait; }
 .answer { margin-top: 12px; padding: 16px; border-radius: 9px; background: #eef6f0; font-size: 13px; }
 .answer p { white-space: pre-wrap; line-height: 1.6; }
 .answer small { color: #647273; }
+@media (max-width: 600px) {
+  .form-page { width: 100%; box-sizing: border-box; padding: 0 14px; margin: 20px auto 48px; }
+  .panel { padding: 18px 16px; border-radius: 12px; }
+  h1 { font-size: 24px; }
+  h2 { font-size: 19px; }
+  input, textarea { box-sizing: border-box; width: 100%; min-width: 0; font-size: 16px; }
+  form button { width: 100%; min-height: 44px; }
+  .question-title { align-items: flex-start; flex-direction: column; }
+  .answer { padding: 14px; }
+}
 </style>
