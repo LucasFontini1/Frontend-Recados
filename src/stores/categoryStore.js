@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia'
 import categoryApi from '@/api/categoryApi'
 import { computed, reactive } from 'vue'
-import { useTemplateStore } from './templateStore'
 
 export const useCategoryStore = defineStore('category', () => {
   const state = reactive({
@@ -11,7 +10,6 @@ export const useCategoryStore = defineStore('category', () => {
     haveError: false,
   })
 
-  const templateStore = useTemplateStore()
 
   const categories = computed(() => state.categories)
   const errorText = computed(() => state.errorText)
@@ -28,9 +26,22 @@ export const useCategoryStore = defineStore('category', () => {
     state.selectedCategoryId = id
   }
 
-  async function getAllCategories() {
+  let lastLoaded = 0
+  let pending = null
+
+  async function getAllCategories(force = false) {
+    if (pending) return pending
+    if (!force && lastLoaded && Date.now() - lastLoaded < 300_000) return
+    pending = loadItems()
     try {
-      templateStore.loading = true
+      await pending
+    } finally {
+      pending = null
+    }
+  }
+
+  async function loadItems() {
+    try {
       state.haveError = false
       state.errorText = ''
 
@@ -39,12 +50,11 @@ export const useCategoryStore = defineStore('category', () => {
       state.categories = Array.isArray(response.data)
         ? response.data
         : response.data?.results ?? []
+      lastLoaded = Date.now()
     } catch (error) {
       console.error('Erro ao buscar categorias:', error)
       state.haveError = true
       state.errorText = 'Não foi possível carregar as categorias.'
-    } finally {
-      templateStore.loading = false
     }
   }
 
