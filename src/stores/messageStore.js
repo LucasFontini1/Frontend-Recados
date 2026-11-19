@@ -52,9 +52,16 @@ export const useMessageStore = defineStore('message', () => {
     }
   }
 
+  function hydrate(data) {
+    state.messages = data.messages ?? []
+    state.notices = data.notices ?? []
+    state.haveError = false
+    state.errorText = ''
+    state.lastLoaded = Date.now()
+  }
   function invalidate() {
     state.lastLoaded = 0
   }
 
-  return { messages, notices, errorText, haveError, getAllMessages, invalidate }
+  return { messages, notices, errorText, haveError, getAllMessages, invalidate, hydrate }
 })
