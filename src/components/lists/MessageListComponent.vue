@@ -1,9 +1,40 @@
 <script setup>
 import { useMessageStore } from '@/stores/messageStore'
-import { nextTick, onUnmounted, ref } from 'vue'
+import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import messageCardComponent from '../cards/messageCardComponent.vue'
 
 const messageStore = useMessageStore()
+
+const emit = defineEmits(['open-detail'])
+const carousel = ref(null)
+const canPrevious = ref(false)
+const canNext = ref(false)
+
+function updateNavigation() {
+  const list = carousel.value
+  if (!list) return
+  canPrevious.value = list.scrollLeft > 3
+  canNext.value = list.scrollLeft + list.clientWidth < list.scrollWidth - 3
+}
+
+function moveCards(direction) {
+  const list = carousel.value
+  const firstCard = list?.firstElementChild
+  if (!firstCard) return
+  const gap = parseFloat(getComputedStyle(list).columnGap) || 0
+  const distance = firstCard.getBoundingClientRect().width + gap
+  list.scrollBy({
+    left: distance * direction,
+    behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
+  })
+}
+
+watch(() => messageStore.messages.length, async () => {
+  await nextTick()
+  updateNavigation()
+}, { immediate: true })
+onMounted(() => window.addEventListener('resize', updateNavigation))
+
 const isDragging = ref(false)
 const isSettling = ref(false)
 let animationFrame = null
@@ -101,6 +132,7 @@ function preventDragClick(event) {
 }
 
 onUnmounted(() => {
+  window.removeEventListener('resize', updateNavigation)
   cancelAnimationFrame(animationFrame)
   isSettling.value = false
 })
@@ -108,10 +140,19 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <h1>
-    <span class="mdi mdi-calendar-range"></span>Próximos Eventos e Datas
-  </h1>
+  <div class="carousel-header">
+    <h1><span class="mdi mdi-calendar-range"></span>Próximos Eventos e Datas</h1>
+    <div class="carousel-controls" aria-label="Navegação dos recados">
+      <button type="button" aria-label="Ver recado anterior" :disabled="!canPrevious" @click="moveCards(-1)">
+        <span class="mdi mdi-chevron-left" aria-hidden="true"></span>
+      </button>
+      <button type="button" aria-label="Ver próximo recado" :disabled="!canNext" @click="moveCards(1)">
+        <span class="mdi mdi-chevron-right" aria-hidden="true"></span>
+      </button>
+    </div>
+  </div>
   <ul
+    ref="carousel"
     class="messages"
     :class="{ 'is-dragging': isDragging, 'is-settling': isSettling }"
     tabindex="0"
@@ -123,15 +164,30 @@ onUnmounted(() => {
     @lostpointercapture="endDrag"
     @pointerleave="leaveDrag"
     @click.capture="preventDragClick"
+    @scroll.passive="updateNavigation"
     @dragstart.prevent
   >
     <li v-for="m in messageStore.messages" :key="m.id">
-      <message-card-component :message="m" />
+      <message-card-component :message="m" @open-detail="emit('open-detail', $event)" />
     </li>
   </ul>
 </template>
 
 <style scoped>
+.carousel-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.carousel-header h1 { flex: 1; min-width: 0; }
+.carousel-controls { display: flex; align-items: center; gap: 8px; margin-top: 20px; }
+.carousel-controls button { display: grid; place-items: center; width: 40px; height: 40px; flex-shrink: 0; border: 1px solid #cbded3; border-radius: 50%; background: #fff; color: #0a4c34; font-size: 25px; cursor: pointer; }
+.carousel-controls button:hover:not(:disabled) { background: #e6f1eb; border-color: #0a6a4c; }
+.carousel-controls button:disabled { opacity: .35; cursor: not-allowed; }
+.carousel-controls button:focus-visible { outline: 2px solid #0a6a4c; outline-offset: 3px; }
+@media (max-width: 600px) {
+  .carousel-header { gap: 8px; align-items: flex-end; }
+  .carousel-header h1 { max-width: calc(100% - 96px); }
+  .carousel-controls { gap: 6px; margin-top: 20px; }
+  .carousel-controls button { width: 36px; height: 36px; font-size: 23px; }
+}
+
 .messages {
   --visible-cards: 1;
   box-sizing: border-box;
