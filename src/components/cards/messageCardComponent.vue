@@ -1,6 +1,8 @@
 <script setup>
 import { computed, ref } from 'vue'
 
+const emit = defineEmits(['open-detail'])
+
 const props = defineProps({
     message: {
         type: Object,
@@ -74,6 +76,7 @@ const publishedDate = computed(() => {
             <h2 class="card-title" :title="message.title">{{ message.title }}</h2>
             <p class="card-description" :title="message.text">{{ message.text }}</p>
 
+            <button class="detail-button" type="button" @click="emit('open-detail', message)">Ver detalhes <span class="mdi mdi-arrow-top-right" aria-hidden="true"></span></button>
             <footer class="card-footer">
                 <span class="mdi mdi-bullhorn-outline" aria-hidden="true"></span>
                 <span>{{ publishedDate ? `Publicado em ${publishedDate}` : 'Recado da comunidade' }}</span>
@@ -278,4 +281,8 @@ const publishedDate = computed(() => {
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+.detail-button { display: flex; align-items: center; gap: 5px; width: fit-content; margin-top: auto; margin-bottom: 8px; padding: 5px 0; border: 0; background: none; color: #0a6a4c; font: inherit; font-size: 11px; font-weight: 700; cursor: pointer; }
+.detail-button:hover { text-decoration: underline; }
+.detail-button:focus-visible { outline: 2px solid #0a6a4c; outline-offset: 3px; border-radius: 3px; }
+.card-footer { margin-top: 0; }
 </style>
