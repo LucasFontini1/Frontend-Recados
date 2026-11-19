@@ -18,9 +18,10 @@ function updateNavigation() {
   const count = list.children.length
   const gap = parseFloat(getComputedStyle(list).columnGap) || 0
   const step = firstCard ? firstCard.getBoundingClientRect().width + gap : 1
+  const maxScroll = Math.max(0, list.scrollWidth - list.clientWidth)
   currentIndex.value = Math.min(Math.max(Math.round(list.scrollLeft / step), 0), Math.max(count - 1, 0))
-  canPrevious.value = count > 1 && currentIndex.value > 0
-  canNext.value = count > 1 && currentIndex.value < count - 1
+  canPrevious.value = list.scrollLeft > 2
+  canNext.value = list.scrollLeft < maxScroll - 2
 }
 
 function moveCards(direction) {
@@ -29,9 +30,12 @@ function moveCards(direction) {
   if (!firstCard) return
   const gap = parseFloat(getComputedStyle(list).columnGap) || 0
   const step = firstCard.getBoundingClientRect().width + gap
-  const target = Math.max(0, Math.min(currentIndex.value + direction, list.children.length - 1))
+  const maxScroll = Math.max(0, list.scrollWidth - list.clientWidth)
+  const target = direction > 0
+    ? Math.min(Math.floor((list.scrollLeft + 2) / step + 1) * step, maxScroll)
+    : Math.max(Math.ceil((list.scrollLeft - 2) / step - 1) * step, 0)
   list.scrollTo({
-    left: target * step,
+    left: target,
     behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
   })
 }
@@ -80,7 +84,7 @@ function moveDrag(event) {
 function settleOnCard(list, startScroll) {
   const card = list.firstElementChild
   if (!card) return
-  const step = card.getBoundingClientRect().width + parseFloat(getComputedStyle(list).columnGap)
+  const step = card.getBoundingClientRect().width + (parseFloat(getComputedStyle(list).columnGap) || 0)
   const distance = list.scrollLeft - startScroll
   const threshold = Math.min(80, step * 0.22)
   const direction = Math.abs(distance) >= threshold ? Math.sign(distance) : 0
@@ -158,40 +162,36 @@ onUnmounted(() => {
         <p class="section-description">Informações importantes da nossa comunidade.</p>
       </div>
     </header>
+    <div class="carousel-shell">
     <ul
-      ref="carousel"
-      class="notices"
-      :class="{ 'is-dragging': isDragging, 'is-settling': isSettling }"
-      tabindex="0"
-      aria-label="Avisos gerais. Role para os lados para ver mais."
-      @pointerdown="startDrag"
-      @pointermove="moveDrag"
-      @pointerup="endDrag"
-      @pointercancel="endDrag"
-      @lostpointercapture="endDrag"
-      @pointerleave="leaveDrag"
-      @click.capture="preventDragClick"
-      @scroll.passive="updateNavigation"
-      @dragstart.prevent
-    >
-      <li v-for="notice in messageStore.notices" :key="notice.id">
-        <notice-card-component :message="notice" @open-detail="emit('open-detail', $event)" />
-      </li>
-    </ul>
-  <nav class="carousel-navigation" aria-label="Navegar entre avisos">
-    <button class="carousel-arrow" type="button" aria-label="Aviso anterior"
-      :disabled="!canPrevious" @click="moveCards(-1)">
-      <span aria-hidden="true">←</span>
+        ref="carousel"
+        class="notices"
+        :class="{ 'is-dragging': isDragging, 'is-settling': isSettling }"
+        tabindex="0"
+        aria-label="Avisos gerais. Role para os lados para ver mais."
+        @pointerdown="startDrag"
+        @pointermove="moveDrag"
+        @pointerup="endDrag"
+        @pointercancel="endDrag"
+        @lostpointercapture="endDrag"
+        @pointerleave="leaveDrag"
+        @click.capture="preventDragClick"
+        @scroll.passive="updateNavigation"
+        @dragstart.prevent
+      >
+        <li v-for="notice in messageStore.notices" :key="notice.id">
+          <notice-card-component :message="notice" @open-detail="emit('open-detail', $event)" />
+        </li>
+      </ul>
+    <button v-if="canPrevious" class="overlay-arrow overlay-arrow--previous"
+      type="button" aria-label="Aviso anterior" @click="moveCards(-1)">
+      <span class="mdi mdi-chevron-left" aria-hidden="true"></span>
     </button>
-    <span class="carousel-position" role="status" aria-live="polite">
-      {{ messageStore.notices.length ? currentIndex + 1 : 0 }}
-      de {{ messageStore.notices.length }}
-    </span>
-    <button class="carousel-arrow" type="button" aria-label="Próximo aviso"
-      :disabled="!canNext" @click="moveCards(1)">
-      <span aria-hidden="true">→</span>
+    <button v-if="canNext" class="overlay-arrow overlay-arrow--next"
+      type="button" aria-label="Próximo aviso" @click="moveCards(1)">
+      <span class="mdi mdi-chevron-right" aria-hidden="true"></span>
     </button>
-  </nav>
+  </div>
   </section>
 </template>
 
@@ -204,14 +204,8 @@ h1 { margin: 0; min-width: 0; color: #0a6a4c; font-size: 28px; font-weight: 700;
 .item-count { display: grid; flex-shrink: 0; place-items: center; min-width: 24px; height: 24px; padding: 0 6px; border-radius: 20px; background: #e2eee8; color: #0a6a4c; font-size: 11px; font-weight: 700; }
 .description-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 46px; margin-top: 6px; }
 .section-description { min-width: 0; margin: 0; color: #647273; font-size: 12px; line-height: 20px; }
-.carousel-controls { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-.carousel-controls button { display: grid; place-items: center; flex-shrink: 0; width: 42px; height: 42px; border: 1px solid #abcabc; border-radius: 50%; background: #fff; box-shadow: 0 2px 6px #163a2c14; color: #0a4c34; font-size: 27px; cursor: pointer; }
-.carousel-controls button:hover:not(:disabled) { border-color: #0a6a4c; background: #e6f1eb; }
-.carousel-controls button:disabled { opacity: .48; cursor: not-allowed; }
-.carousel-controls button:focus-visible { outline: 2px solid #0a6a4c; outline-offset: 3px; }
 .notices {
-  max-width: 400px;
-  --visible-cards: 1;
+  max-width: 100%;
   box-sizing: border-box;
   display: flex;
   flex-wrap: nowrap;
@@ -224,7 +218,7 @@ h1 { margin: 0; min-width: 0; color: #0a6a4c; font-size: 28px; font-weight: 700;
   overscroll-behavior-x: contain;
   scroll-snap-type: x mandatory;
   scroll-padding-inline: 2px;
-  scrollbar-width: thin;
+  scrollbar-width: none;
   scrollbar-color: #7ca99b #e1e9e6;
   list-style: none;
   cursor: grab;
@@ -247,7 +241,7 @@ h1 { margin: 0; min-width: 0; color: #0a6a4c; font-size: 28px; font-weight: 700;
 
 .notices > li {
   box-sizing: border-box;
-  flex: 0 0 100%;
+  flex: 0 0 clamp(250px, 31%, 340px);
   min-width: 0;
   scroll-snap-align: start;
 }
@@ -283,38 +277,38 @@ h1 { margin: 0; min-width: 0; color: #0a6a4c; font-size: 28px; font-weight: 700;
   h1 { font-size: 21px; }
   .section-icon { width: 32px; height: 32px; font-size: 19px; }
   .description-row { gap: 10px; }
-  .carousel-controls { gap: 6px; }
-  .carousel-controls button { width: 38px; height: 38px; font-size: 24px; }
-  .notices { gap: 12px; scroll-padding-inline: 0; padding-inline: 0; }
-  .notices > li { flex-basis: 100%; }
+    .notices { gap: 12px; scroll-padding-inline: 0; padding-inline: 0; }
+  .notices > li { flex-basis: min(86vw, 320px); }
 }
 
-
-.carousel-navigation {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  width: min(100%, 400px);
-  margin-top: 8px;
-  padding: 10px 4px;
-}
-.carousel-arrow {
+.carousel-shell { position: relative; min-width: 0; width: 100%; }
+.overlay-arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
   display: grid;
   place-items: center;
-  width: 52px;
-  height: 48px;
-  border: 1px solid #0a6a4c;
-  border-radius: 12px;
-  background: #0a4c34;
-  color: #fff;
-  font: 700 29px/1 system-ui, sans-serif;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 1px solid #e0e7e2;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .96);
+  box-shadow: 0 2px 12px #163a2c35;
+  color: #184c36;
+  font-size: 26px;
   cursor: pointer;
-  transition: background .18s ease;
+  transform: translateY(-50%);
+  transition: background .2s ease, box-shadow .2s ease;
 }
-.carousel-arrow:hover:not(:disabled) { background: #0a6a4c; }
-.carousel-arrow:focus-visible { outline: 3px solid #0a6a4c; outline-offset: 3px; }
-.carousel-arrow:disabled { opacity: .45; cursor: not-allowed; background: #e5ece7; color: #0a4c34; }
-.carousel-position { color: #0a4c34; font-family: 'Comfortaa', sans-serif; font-size: 13px; font-weight: 700; white-space: nowrap; }
-
+.overlay-arrow:hover { background: #eff7f1; box-shadow: 0 3px 15px #163a2c45; }
+.overlay-arrow:focus-visible { outline: 3px solid #0a6a4c; outline-offset: 2px; }
+.overlay-arrow--previous { left: 10px; }
+.overlay-arrow--next { right: 10px; }
+.notices::-webkit-scrollbar { display: none; }
+@media (max-width: 600px) {
+  .overlay-arrow { width: 32px; height: 32px; font-size: 23px; }
+  .overlay-arrow--previous { left: 5px; }
+  .overlay-arrow--next { right: 5px; }
+}
 </style>
