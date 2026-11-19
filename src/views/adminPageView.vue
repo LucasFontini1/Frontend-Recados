@@ -29,7 +29,7 @@ const form = reactive({
 })
 
 const isAdmin = computed(() =>
-  auth.user?.is_superuser || auth.user?.groups?.some(group => group.name === 'admin'),
+  auth.user?.is_superuser || auth.user?.groups?.some(group => ['admin', 'superadmin'].includes(group.name)),
 )
 function can(permission) {
   return Boolean(auth.user?.is_superuser || auth.user?.permissions?.includes(permission))
@@ -39,6 +39,17 @@ function list(response) {
 }
 function permissionFor(action, model) {
   return can(`core.${action}_${model}`)
+}
+function isProtectedUser(person) {
+  return Boolean(person.is_superuser || person.groups?.some(group =>
+    ['admin', 'superadmin'].includes(group.name)
+  ))
+}
+function getRole(person) {
+  if (person.is_superuser) return 'Superusuário Django'
+  if (person.groups?.some(group => group.name === 'superadmin')) return 'superadmin'
+  if (person.groups?.some(group => group.name === 'admin')) return 'admin'
+  return 'viewer'
 }
 const configurations = {
   messages: { name: 'Publicações', singular: 'publicação', model: 'message' },
@@ -100,7 +111,7 @@ async function loadData() {
     jobs.push(userApi.getAll().then(r => {
       users.value = list(r)
       users.value.forEach(u => {
-        groupSelections[u.id] = u.groups?.some(g => g.name === 'admin') ? 'admin' : 'viewer'
+        groupSelections[u.id] = getRole(u)
       })
     }))
   }
@@ -200,6 +211,10 @@ async function saveRecord() {
 async function deleteRecord(item) {
   const current = activeTab.value
   const label = item.title || item.name || item.email
+  if (current === 'users' && isProtectedUser(item)) {
+    errorMessage.value = 'Administradores e superadmins só podem ser alterados pelo Django Admin.'
+    return
+  }
   const warning = current === 'pastorals' || current === 'categories' || current === 'users'
     ? ' Os dados relacionados também podem ser excluídos permanentemente.'
     : ''
@@ -213,6 +228,10 @@ async function deleteRecord(item) {
   await execute(actions[current], 'Registro excluído com sucesso.')
 }
 async function saveGroup(person) {
+  if (isProtectedUser(person)) {
+    errorMessage.value = 'Administradores e superadmins só podem ser alterados pelo Django Admin.'
+    return
+  }
   await execute(
     () => userApi.setGroup(person.id, groupSelections[person.id]),
     'Grupo atualizado com sucesso.',
@@ -341,16 +360,18 @@ onMounted(loadData)
               <div class="record-heading">
                 <div>
                   <h3>{{ item.name || 'Sem nome' }}</h3>
-                  <small>{{ item.email }}</small>
+                  <small>{{ item.email }} · {{ getRole(item) }}</small>
+                  <small v-if="isProtectedUser(item)" class="protected-note">Cargo protegido · gerencie pelo Django Admin</small>
                 </div>
                 <div class="actions">
-                  <select v-model="groupSelections[item.id]" :disabled="!permissionFor('change', 'user') || item.is_superuser || item.id === auth.user?.id">
+                  <select v-model="groupSelections[item.id]" :disabled="!permissionFor('change', 'user') || isProtectedUser(item) || item.id === auth.user?.id">
                     <option value="viewer">viewer</option>
                     <option value="admin">admin</option>
+                    <option v-if="getRole(item) === 'superadmin'" value="superadmin">superadmin</option>
                   </select>
                   <button type="button" :disabled="saving || !permissionFor('change', 'user') || item.is_superuser || item.id === auth.user?.id"
                     @click="saveGroup(item)">Salvar grupo</button>
-                  <button type="button" class="danger" :disabled="saving || !permissionFor('delete', 'user') || item.is_superuser || item.id === auth.user?.id"
+                  <button type="button" class="danger" :disabled="saving || !permissionFor('delete', 'user') || isProtectedUser(item) || item.id === auth.user?.id"
                     @click="deleteRecord(item)">Excluir</button>
                 </div>
               </div>
@@ -412,6 +433,7 @@ button.danger { background: #a33535; color: white; }
 .record { border-top: 1px solid #d6e1df; padding: 20px 0; }
 .record-heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
 .record small { color: #647273; font-size: 11px; line-height: 1.6; }
+.protected-note { display: block; margin-top: 5px; color: #9a5b15 !important; }
 .record-text { font-size: 13px; color: #526962; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
 .record textarea { margin-bottom: 10px; }
 .color-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; }
