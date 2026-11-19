@@ -234,8 +234,8 @@ onUnmounted(() => {
 
 h1 {
   margin: 0;
-  color: #18332a;
-  font-family: Georgia, serif;
+  color: #0a6a4c;
+  font-family: 'Comfortaa', sans-serif;
   font-size: 28px;
   font-weight: 700;
 }
