@@ -9,12 +9,18 @@ const emit = defineEmits(['open-detail'])
 const carousel = ref(null)
 const canPrevious = ref(false)
 const canNext = ref(false)
+const currentIndex = ref(0)
 
 function updateNavigation() {
   const list = carousel.value
   if (!list) return
-  canPrevious.value = list.scrollLeft > 3
-  canNext.value = list.scrollLeft + list.clientWidth < list.scrollWidth - 3
+  const firstCard = list.firstElementChild
+  const count = list.children.length
+  const gap = parseFloat(getComputedStyle(list).columnGap) || 0
+  const step = firstCard ? firstCard.getBoundingClientRect().width + gap : 1
+  currentIndex.value = Math.min(Math.max(Math.round(list.scrollLeft / step), 0), Math.max(count - 1, 0))
+  canPrevious.value = count > 1 && currentIndex.value > 0
+  canNext.value = count > 1 && currentIndex.value < count - 1
 }
 
 function moveCards(direction) {
@@ -22,9 +28,10 @@ function moveCards(direction) {
   const firstCard = list?.firstElementChild
   if (!firstCard) return
   const gap = parseFloat(getComputedStyle(list).columnGap) || 0
-  const distance = firstCard.getBoundingClientRect().width + gap
-  list.scrollBy({
-    left: distance * direction,
+  const step = firstCard.getBoundingClientRect().width + gap
+  const target = Math.max(0, Math.min(currentIndex.value + direction, list.children.length - 1))
+  list.scrollTo({
+    left: target * step,
     behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
   })
 }
@@ -149,14 +156,6 @@ onUnmounted(() => {
       </div>
       <div class="description-row">
         <p class="section-description">Informações importantes da nossa comunidade.</p>
-        <div class="carousel-controls" aria-label="Navegação dos avisos">
-          <button type="button" aria-label="Ver aviso anterior" :disabled="!canPrevious" @click="moveCards(-1)">
-            <span class="mdi mdi-chevron-left" aria-hidden="true"></span>
-          </button>
-          <button type="button" aria-label="Ver próximo aviso" :disabled="!canNext" @click="moveCards(1)">
-            <span class="mdi mdi-chevron-right" aria-hidden="true"></span>
-          </button>
-        </div>
       </div>
     </header>
     <ul
@@ -179,6 +178,20 @@ onUnmounted(() => {
         <notice-card-component :message="notice" @open-detail="emit('open-detail', $event)" />
       </li>
     </ul>
+  <nav class="carousel-navigation" aria-label="Navegar entre avisos">
+    <button class="carousel-arrow" type="button" aria-label="Aviso anterior"
+      :disabled="!canPrevious" @click="moveCards(-1)">
+      <span aria-hidden="true">←</span>
+    </button>
+    <span class="carousel-position" role="status" aria-live="polite">
+      {{ messageStore.notices.length ? currentIndex + 1 : 0 }}
+      de {{ messageStore.notices.length }}
+    </span>
+    <button class="carousel-arrow" type="button" aria-label="Próximo aviso"
+      :disabled="!canNext" @click="moveCards(1)">
+      <span aria-hidden="true">→</span>
+    </button>
+  </nav>
   </section>
 </template>
 
@@ -197,6 +210,7 @@ h1 { margin: 0; min-width: 0; color: #0a6a4c; font-size: 28px; font-weight: 700;
 .carousel-controls button:disabled { opacity: .48; cursor: not-allowed; }
 .carousel-controls button:focus-visible { outline: 2px solid #0a6a4c; outline-offset: 3px; }
 .notices {
+  max-width: 400px;
   --visible-cards: 1;
   box-sizing: border-box;
   display: flex;
@@ -205,7 +219,7 @@ h1 { margin: 0; min-width: 0; color: #0a6a4c; font-size: 28px; font-weight: 700;
   width: 100%;
   min-width: 0;
   margin-top: 10px;
-  padding: 4px 2px 16px;
+  padding: 4px 0 12px;
   overflow-x: auto;
   overscroll-behavior-x: contain;
   scroll-snap-type: x mandatory;
@@ -233,7 +247,7 @@ h1 { margin: 0; min-width: 0; color: #0a6a4c; font-size: 28px; font-weight: 700;
 
 .notices > li {
   box-sizing: border-box;
-  flex: 0 0 calc((100% - (var(--visible-cards) - 1) * 20px) / var(--visible-cards));
+  flex: 0 0 100%;
   min-width: 0;
   scroll-snap-align: start;
 }
@@ -274,7 +288,33 @@ h1 { margin: 0; min-width: 0; color: #0a6a4c; font-size: 28px; font-weight: 700;
   .notices { gap: 12px; scroll-padding-inline: 0; padding-inline: 0; }
   .notices > li { flex-basis: 100%; }
 }
-@media (min-width: 800px) { .notices { --visible-cards: 2; } }
-@media (min-width: 1200px) { .notices { --visible-cards: 3; } }
-@media (min-width: 1600px) { .notices { --visible-cards: 4; } }
+
+
+.carousel-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  width: min(100%, 400px);
+  margin-top: 8px;
+  padding: 10px 4px;
+}
+.carousel-arrow {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 48px;
+  border: 1px solid #0a6a4c;
+  border-radius: 12px;
+  background: #0a4c34;
+  color: #fff;
+  font: 700 29px/1 system-ui, sans-serif;
+  cursor: pointer;
+  transition: background .18s ease;
+}
+.carousel-arrow:hover:not(:disabled) { background: #0a6a4c; }
+.carousel-arrow:focus-visible { outline: 3px solid #0a6a4c; outline-offset: 3px; }
+.carousel-arrow:disabled { opacity: .45; cursor: not-allowed; background: #e5ece7; color: #0a4c34; }
+.carousel-position { color: #0a4c34; font-family: 'Comfortaa', sans-serif; font-size: 13px; font-weight: 700; white-space: nowrap; }
+
 </style>
