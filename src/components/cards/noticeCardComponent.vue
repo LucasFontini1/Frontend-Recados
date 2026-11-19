@@ -43,6 +43,8 @@ const publishedDate = computed(() => {
 
 <style scoped>
 .notice-card {
+  min-width: 0;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   width: 100%;
