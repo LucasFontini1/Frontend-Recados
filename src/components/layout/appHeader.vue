@@ -48,7 +48,7 @@ header {
 div.total {
   display: flex;
   justify-content: space-between;
-  width: 70%;
+  width: min(1200px, 94%);
   padding: 10px;
   align-items: center;
 }
@@ -59,7 +59,8 @@ div.logo {
   gap: 20px;
 
   & img {
-    width: 20%;
+    width: 64px;
+    flex-shrink: 0;
   }
 
   & h1 {
@@ -72,7 +73,7 @@ div.logo {
   }
 }
 
-div.security {
+nav.security {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -105,7 +106,7 @@ div.security {
 }
 .header-link:hover { background: #e8f0eb; }
 @media (max-width: 700px) {
-  div.security { flex-wrap: wrap; justify-content: flex-end; }
+  nav.security { flex-wrap: wrap; justify-content: flex-end; }
   .header-link { font-size: 11px; padding: 8px; }
   div.total {
     width: 100%;
@@ -124,7 +125,7 @@ div.security {
   div.logo p {
     font-size: 11px;
   }
-  div.security button {
+  nav.security button {
     padding: 10px;
     white-space: nowrap;
   }
