@@ -98,25 +98,25 @@ async function loadData() {
   if (!isAdmin.value) return
   loading.value = true
   errorMessage.value = ''
-  const jobs = [
-    pastoralApi.getAll().then(r => { pastorals.value = list(r) }),
-    categoryApi.getAll().then(r => { categories.value = list(r) }),
-  ]
-  if (permissionFor('view', 'message')) {
+  const jobs = []
+  // Evita consultar usuários, perguntas e publicações antes de abrir suas abas.
+  if (['messages', 'pastorals', 'categories'].includes(activeTab.value)) {
+    jobs.push(pastoralApi.getAll().then(r => { pastorals.value = list(r) }))
+    jobs.push(categoryApi.getAll().then(r => { categories.value = list(r) }))
+  }
+  if (activeTab.value === 'messages' && permissionFor('view', 'message')) {
     jobs.push(messageApi.getAdminAll().then(r => { messages.value = list(r) }))
   }
-  if (permissionFor('view', 'question')) {
+  if (activeTab.value === 'questions' && permissionFor('view', 'question')) {
     jobs.push(questionApi.getAll().then(r => {
       questions.value = list(r)
       questions.value.forEach(q => { answers[q.id] = q.answer || '' })
     }))
   }
-  if (permissionFor('view', 'user')) {
+  if (activeTab.value === 'users' && permissionFor('view', 'user')) {
     jobs.push(userApi.getAll().then(r => {
       users.value = list(r)
-      users.value.forEach(u => {
-        groupSelections[u.id] = getRole(u)
-      })
+      users.value.forEach(u => { groupSelections[u.id] = getRole(u) })
     }))
   }
   const results = await Promise.allSettled(jobs)
@@ -138,6 +138,7 @@ function changeTab(tab) {
   resetForm()
   feedback.value = ''
   errorMessage.value = ''
+  loadData()
 }
 function localDate(value) {
   if (!value) return ''
