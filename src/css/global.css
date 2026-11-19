@@ -22,11 +22,8 @@ body {
   min-height: 100dvh;
 }
 
-div.page{
-    width: 75%;
-    padding: 10px;
-    margin: 0 auto;
-}
+div.page { width: min(1200px, 94%); min-width: 0; padding: 12px 0 48px; margin: 0 auto; }
+@media (max-width: 600px) { div.page { width: 100%; padding: 12px 16px 40px; } }
 
 
 .err{
