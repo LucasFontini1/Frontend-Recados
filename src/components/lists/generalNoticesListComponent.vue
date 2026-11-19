@@ -145,7 +145,7 @@ onUnmounted(() => {
       <div class="heading-row">
         <span class="section-icon mdi mdi-shield-check-outline" aria-hidden="true"></span>
         <h1 id="notices-heading">Avisos Gerais</h1>
-        <span class="notice-count" :aria-label="`${messageStore.notices.length} avisos`">{{ messageStore.notices.length }}</span>
+        <span class="item-count" :aria-label="`${messageStore.notices.length} avisos`">{{ messageStore.notices.length }}</span>
       </div>
       <div class="description-row">
         <p class="section-description">Informações importantes da nossa comunidade.</p>
@@ -183,19 +183,19 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-.description-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.description-row .section-description { min-width: 0; }
+.notices-section { min-width: 0; margin-top: 40px; font-family: 'Comfortaa', sans-serif; }
+.section-header { margin-bottom: 14px; }
+.heading-row { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.section-icon { display: grid; place-items: center; flex-shrink: 0; width: 36px; height: 36px; border-radius: 6px; background: #e2eee8; color: #0a6a4c; font-size: 22px; }
+h1 { margin: 0; min-width: 0; color: #0a6a4c; font-size: 28px; font-weight: 700; line-height: 1.4; }
+.item-count { display: grid; flex-shrink: 0; place-items: center; min-width: 24px; height: 24px; padding: 0 6px; border-radius: 20px; background: #e2eee8; color: #0a6a4c; font-size: 11px; font-weight: 700; }
+.description-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 46px; margin-top: 6px; }
+.section-description { min-width: 0; margin: 0; color: #647273; font-size: 12px; line-height: 20px; }
 .carousel-controls { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-.carousel-controls button { display: grid; place-items: center; width: 40px; height: 40px; border: 1px solid #cbded3; border-radius: 50%; background: #fff; color: #0a4c34; font-size: 25px; cursor: pointer; }
-.carousel-controls button:hover:not(:disabled) { background: #e6f1eb; border-color: #0a6a4c; }
-.carousel-controls button:disabled { opacity: .35; cursor: not-allowed; }
+.carousel-controls button { display: grid; place-items: center; flex-shrink: 0; width: 42px; height: 42px; border: 1px solid #abcabc; border-radius: 50%; background: #fff; box-shadow: 0 2px 6px #163a2c14; color: #0a4c34; font-size: 27px; cursor: pointer; }
+.carousel-controls button:hover:not(:disabled) { border-color: #0a6a4c; background: #e6f1eb; }
+.carousel-controls button:disabled { opacity: .48; cursor: not-allowed; }
 .carousel-controls button:focus-visible { outline: 2px solid #0a6a4c; outline-offset: 3px; }
-@media (max-width: 600px) {
-  .description-row .section-description { flex: 1; }
-  .carousel-controls { gap: 6px; }
-  .carousel-controls button { width: 36px; height: 36px; font-size: 23px; }
-}
-
 .notices {
   --visible-cards: 1;
   box-sizing: border-box;
@@ -263,86 +263,18 @@ onUnmounted(() => {
   background: #7ca99b;
 }
 
-.notices-section {
-  min-width: 0;
-  margin-top: 40px;
-  font-family: 'Comfortaa', sans-serif;
-}
-
-.section-header {
-  margin-bottom: 22px;
-}
-
-.heading-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.section-icon {
-  display: grid;
-  flex-shrink: 0;
-  width: 36px;
-  height: 36px;
-  place-items: center;
-  border-radius: 6px;
-  background: #e2eee8;
-  color: #0a6a4c;
-  font-size: 22px;
-}
-
-h1 {
-  margin: 0;
-  color: #0a6a4c;
-  font-family: 'Comfortaa', sans-serif;
-  font-size: 28px;
-  font-weight: 700;
-}
-
-.notice-count {
-  display: grid;
-  min-width: 24px;
-  height: 24px;
-  padding: 0 6px;
-  place-items: center;
-  border-radius: 20px;
-  background: #e2eee8;
-  color: #0a6a4c;
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.section-description {
-  margin: 8px 0 0 46px;
-  color: #647273;
-  font-size: 12px;
-  line-height: 20px;
-}
-
 @media (max-width: 600px) {
   .notices-section { margin-top: 30px; }
-  .heading-row { gap: 8px; align-items: center; }
-  h1 { font-size: 21px; line-height: 1.4; }
+  .heading-row { gap: 8px; }
+  h1 { font-size: 21px; }
   .section-icon { width: 32px; height: 32px; font-size: 19px; }
-  .section-description { margin: 8px 0 0; font-size: 12px; }
+  .description-row { gap: 10px; }
+  .carousel-controls { gap: 6px; }
+  .carousel-controls button { width: 38px; height: 38px; font-size: 24px; }
   .notices { gap: 12px; scroll-padding-inline: 0; padding-inline: 0; }
   .notices > li { flex-basis: 100%; }
 }
-@media (min-width: 800px) {
-  .notices {
-    --visible-cards: 2;
-  }
-}
-
-@media (min-width: 1200px) {
-  .notices {
-    --visible-cards: 3;
-  }
-}
-
-@media (min-width: 1600px) {
-  .notices {
-    --visible-cards: 4;
-  }
-}
+@media (min-width: 800px) { .notices { --visible-cards: 2; } }
+@media (min-width: 1200px) { .notices { --visible-cards: 3; } }
+@media (min-width: 1600px) { .notices { --visible-cards: 4; } }
 </style>
