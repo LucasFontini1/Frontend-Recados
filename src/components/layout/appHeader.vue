@@ -4,7 +4,7 @@ import { computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
 
 const auth = useAuthStore()
-const isAdmin = computed(() => auth.user?.is_superuser || auth.user?.groups?.some((group) => group.name === 'admin'))
+const isAdmin = computed(() => auth.user?.is_superuser || auth.user?.groups?.some((group) => ['admin', 'superadmin'].includes(group.name)))
 onMounted(() => {
   auth.refreshUserSession().catch(() => {
     // Erros de conexão não impedem a leitura dos recados públicos.
