@@ -40,10 +40,14 @@ function list(response) {
 function permissionFor(action, model) {
   return can(`core.${action}_${model}`)
 }
+const isSuperadmin = computed(() =>
+  Boolean(auth.user?.is_superuser || auth.user?.groups?.some(group => group.name === 'superadmin'))
+)
 function isProtectedUser(person) {
-  return Boolean(person.is_superuser || person.groups?.some(group =>
-    ['admin', 'superadmin'].includes(group.name)
-  ))
+  if (person.is_superuser || person.id === auth.user?.id) return true
+  if (person.groups?.some(group => group.name === 'superadmin')) return true
+  if (person.groups?.some(group => group.name === 'admin')) return !isSuperadmin.value
+  return false
 }
 function getRole(person) {
   if (person.is_superuser) return 'Superusuário Django'
@@ -212,7 +216,7 @@ async function deleteRecord(item) {
   const current = activeTab.value
   const label = item.title || item.name || item.email
   if (current === 'users' && isProtectedUser(item)) {
-    errorMessage.value = 'Administradores e superadmins só podem ser alterados pelo Django Admin.'
+    errorMessage.value = 'Esta conta é protegida. Somente superadmins podem gerenciar admins; superadmins e superusuários devem ser gerenciados no Django Admin.'
     return
   }
   const warning = current === 'pastorals' || current === 'categories' || current === 'users'
@@ -361,7 +365,7 @@ onMounted(loadData)
                 <div>
                   <h3>{{ item.name || 'Sem nome' }}</h3>
                   <small>{{ item.email }} · {{ getRole(item) }}</small>
-                  <small v-if="isProtectedUser(item)" class="protected-note">Cargo protegido · gerencie pelo Django Admin</small>
+                  <small v-if="isProtectedUser(item)" class="protected-note">Cargo protegido · sem permissão para alterar pelo portal</small>
                 </div>
                 <div class="actions">
                   <select v-model="groupSelections[item.id]" :disabled="!permissionFor('change', 'user') || isProtectedUser(item) || item.id === auth.user?.id">
@@ -370,7 +374,7 @@ onMounted(loadData)
                     <option v-if="getRole(item) === 'superadmin'" value="superadmin">superadmin</option>
                     <option v-if="item.is_superuser" value="Superusuário Django">Superusuário Django</option>
                   </select>
-                  <button type="button" :disabled="saving || !permissionFor('change', 'user') || item.is_superuser || item.id === auth.user?.id"
+                  <button type="button" :disabled="saving || !permissionFor('change', 'user') || isProtectedUser(item)"
                     @click="saveGroup(item)">Salvar grupo</button>
                   <button type="button" class="danger" :disabled="saving || !permissionFor('delete', 'user') || isProtectedUser(item) || item.id === auth.user?.id"
                     @click="deleteRecord(item)">Excluir</button>
