@@ -461,8 +461,8 @@ button.danger { background: #a33535; color: white; }
   .page-heading { margin: 20px 0; }
   h1 { font-size: 25px; line-height: 1.3; }
   h2 { font-size: 17px; }
-  .tabs { margin: 18px -14px; padding: 0 14px 12px; gap: 8px; scroll-snap-type: x proximity; }
-  .tabs button { flex: 0 0 auto; padding: 12px 14px; scroll-snap-align: start; }
+  .tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 18px 0; padding: 0; gap: 8px; overflow: visible; }
+  .tabs button { min-width: 0; width: 100%; white-space: normal; padding: 12px 8px; line-height: 1.35; min-height: 44px; }
   .panel { padding: 16px; border-radius: 12px; }
   input, textarea, select { box-sizing: border-box; font-size: 16px; }
   .record { padding: 16px 0; }
@@ -478,7 +478,7 @@ button.danger { background: #a33535; color: white; }
 }
 @media (max-width: 360px) {
   .admin-page { padding: 0 10px; }
-  .tabs { margin-inline: -10px; padding-inline: 10px; }
+  .tabs { margin-inline: 0; padding-inline: 0; }
   .actions, .form-actions { grid-template-columns: 1fr; }
 }
 </style>
