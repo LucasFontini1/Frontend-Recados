@@ -1,12 +1,29 @@
 ﻿import api from './config'
 import axios from 'axios'
+import { useTemplateStore } from '@/stores/templateStore'
 
 // O cliente é criado na primeira requisição, após a inicialização dos módulos.
 // Ele não envia tokens antigos nem executa o interceptor de refresh.
 let authClient
 
 function getAuthClient() {
-  authClient ??= axios.create({ baseURL: api.defaults.baseURL })
+  if (!authClient) {
+    authClient = axios.create({ baseURL: api.defaults.baseURL })
+    authClient.interceptors.request.use(config => {
+      useTemplateStore().beginLoading()
+      return config
+    })
+    authClient.interceptors.response.use(
+      response => {
+        useTemplateStore().endLoading()
+        return response
+      },
+      error => {
+        useTemplateStore().endLoading()
+        return Promise.reject(error)
+      },
+    )
+  }
   return authClient
 }
 
