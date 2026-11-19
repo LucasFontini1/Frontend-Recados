@@ -368,6 +368,7 @@ onMounted(loadData)
                     <option value="viewer">viewer</option>
                     <option value="admin">admin</option>
                     <option v-if="getRole(item) === 'superadmin'" value="superadmin">superadmin</option>
+                    <option v-if="item.is_superuser" value="Superusuário Django">Superusuário Django</option>
                   </select>
                   <button type="button" :disabled="saving || !permissionFor('change', 'user') || item.is_superuser || item.id === auth.user?.id"
                     @click="saveGroup(item)">Salvar grupo</button>
@@ -406,7 +407,7 @@ onMounted(loadData)
 </template>
 
 <style scoped>
-.admin-page { width: min(1100px, 94%); margin: 28px auto 70px; color: #18332a; font-family: 'Comfortaa', sans-serif; }
+.admin-page { box-sizing: border-box; width: min(1100px, 94%); margin: 28px auto 70px; color: #18332a; font-family: 'Comfortaa', sans-serif; }
 .back-link { color: #0a4c34; font-size: 13px; text-decoration: none; }
 .page-heading { margin: 24px 0; }
 .eyebrow { color: #0a6a4c; letter-spacing: 1.5px; font-size: 11px; font-weight: 700; }
@@ -417,7 +418,7 @@ h3 { margin: 0 0 8px; font-size: 15px; overflow-wrap: anywhere; }
 .tabs { display: flex; gap: 8px; overflow-x: auto; margin: 26px 0; padding-bottom: 6px; }
 .tabs button { white-space: nowrap; background: #ecf3ee; color: #0a4c34; }
 .tabs button.active { color: white; background: #0a4c34; }
-.panel { margin: 18px 0; background: white; border: 1px solid #d6e1df; border-radius: 14px; padding: clamp(18px, 3vw, 28px); box-shadow: 0 3px 12px #123d2710; }
+.panel { min-width: 0; overflow-wrap: anywhere; margin: 18px 0; background: white; border: 1px solid #d6e1df; border-radius: 14px; padding: clamp(18px, 3vw, 28px); box-shadow: 0 3px 12px #123d2710; }
 form { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
 label { display: block; font-size: 12px; font-weight: 700; margin: 12px 0 6px; }
 input, textarea, select { width: 100%; min-width: 0; border: 1px solid #d6e1df; border-radius: 8px; padding: 12px; font: inherit; font-size: 13px; background: white; }
@@ -432,6 +433,7 @@ button.danger { background: #a33535; color: white; }
 .two-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .record { border-top: 1px solid #d6e1df; padding: 20px 0; }
 .record-heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+.record-heading > div:first-child { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .record small { color: #647273; font-size: 11px; line-height: 1.6; }
 .protected-note { display: block; margin-top: 5px; color: #9a5b15 !important; }
 .record-text { font-size: 13px; color: #526962; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
@@ -449,5 +451,30 @@ button.danger { background: #a33535; color: white; }
   .two-cols { grid-template-columns: 1fr; }
   .record-heading { align-items: flex-start; }
   .actions { width: 100%; }
+}
+@media (max-width: 600px) {
+  .admin-page { width: 100%; margin: 16px auto 40px; padding: 0 14px; }
+  .page-heading { margin: 20px 0; }
+  h1 { font-size: 25px; line-height: 1.3; }
+  h2 { font-size: 17px; }
+  .tabs { margin: 18px -14px; padding: 0 14px 12px; gap: 8px; scroll-snap-type: x proximity; }
+  .tabs button { flex: 0 0 auto; padding: 12px 14px; scroll-snap-align: start; }
+  .panel { padding: 16px; border-radius: 12px; }
+  input, textarea, select { box-sizing: border-box; font-size: 16px; }
+  .record { padding: 16px 0; }
+  .record-heading { flex-direction: column; align-items: stretch; gap: 12px; }
+  .record-heading > div:first-child { width: 100%; }
+  .actions, .form-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; gap: 8px; }
+  .actions select { grid-column: 1 / -1; }
+  .actions button, .form-actions button { width: 100%; min-height: 44px; padding: 11px 8px; }
+  .record > button { width: 100%; min-height: 44px; }
+  .record textarea { width: 100%; }
+  .two-cols { gap: 8px; }
+  .status { align-self: flex-start; }
+}
+@media (max-width: 360px) {
+  .admin-page { padding: 0 10px; }
+  .tabs { margin-inline: -10px; padding-inline: 10px; }
+  .actions, .form-actions { grid-template-columns: 1fr; }
 }
 </style>
