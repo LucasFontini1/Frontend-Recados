@@ -69,7 +69,14 @@ export const usePastoralStore = defineStore('pastoral', () => {
     }
   }
 
+  function hydrate(data) {
+    state.pastorals = data
+    state.haveError = false
+    state.errorText = ''
+    lastLoaded = Date.now()
+  }
   return {
+    hydrate,
     pastorals,
     selectedPastoralId,
     selectedPastoral,
