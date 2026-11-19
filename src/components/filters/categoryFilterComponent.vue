@@ -55,7 +55,6 @@ function closeOnOutsideClick(event) {
 
 // Busca as categorias ao montar o componente
 onMounted(() => {
-  categoryStore.getAllCategories()
   document.addEventListener('pointerdown', closeOnOutsideClick)
 })
 
