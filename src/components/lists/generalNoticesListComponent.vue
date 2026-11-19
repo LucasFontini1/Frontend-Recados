@@ -47,8 +47,6 @@ watch(() => messageStore.notices.length, async () => {
 onMounted(() => window.addEventListener('resize', updateNavigation))
 
 const isDragging = ref(false)
-const isSettling = ref(false)
-let animationFrame = null
 let drag = null
 let suppressClick = false
 
@@ -57,8 +55,6 @@ function startDrag(event) {
   const list = event.currentTarget
   // A barra de rolagem continua usando o comportamento nativo.
   if (event.clientY >= list.getBoundingClientRect().top + list.clientTop + list.clientHeight) return
-  cancelAnimationFrame(animationFrame)
-  isSettling.value = false
   suppressClick = false
   drag = {
     pointerId: event.pointerId,
@@ -81,48 +77,12 @@ function moveDrag(event) {
   event.currentTarget.scrollLeft = drag.scrollLeft - distance
 }
 
-function settleOnCard(list, startScroll) {
-  const card = list.firstElementChild
-  if (!card) return
-  const step = card.getBoundingClientRect().width + (parseFloat(getComputedStyle(list).columnGap) || 0)
-  const distance = list.scrollLeft - startScroll
-  const threshold = Math.min(80, step * 0.22)
-  const direction = Math.abs(distance) >= threshold ? Math.sign(distance) : 0
-  const index = Math.round(startScroll / step) + direction
-  const target = Math.max(0, Math.min(index * step, list.scrollWidth - list.clientWidth))
-  const from = list.scrollLeft
-
-  isSettling.value = true
-  nextTick(() => {
-    if (!isSettling.value) return
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      list.scrollLeft = target
-      isSettling.value = false
-      return
-    }
-    const start = performance.now()
-    function animate(now) {
-      const progress = Math.min((now - start) / 300, 1)
-      const eased = 1 - (1 - progress) ** 3
-      list.scrollLeft = from + (target - from) * eased
-      if (progress < 1) {
-        animationFrame = requestAnimationFrame(animate)
-      } else {
-        isSettling.value = false
-        animationFrame = null
-      }
-    }
-    animationFrame = requestAnimationFrame(animate)
-  })
-}
-
 function endDrag(event) {
   if (!drag || event.pointerId !== drag.pointerId) return
   const list = event.currentTarget
-  const startScroll = drag.scrollLeft
-  const wasDragging = isDragging.value
   drag = null
-  if (wasDragging) settleOnCard(list, startScroll)
+  // Solta no ponto escolhido pelo usuário; o scroll-snap nativo alinha o card mais próximo.
+  // Não limita a rolagem a um card quando o usuário arrasta por uma distância maior.
   isDragging.value = false
   if (list.hasPointerCapture(event.pointerId)) {
     list.releasePointerCapture(event.pointerId)
@@ -144,8 +104,6 @@ function preventDragClick(event) {
 
 onUnmounted(() => {
   window.removeEventListener('resize', updateNavigation)
-  cancelAnimationFrame(animationFrame)
-  isSettling.value = false
 })
 
 </script>
@@ -166,7 +124,7 @@ onUnmounted(() => {
     <ul
         ref="carousel"
         class="notices"
-        :class="{ 'is-dragging': isDragging, 'is-settling': isSettling }"
+        :class="{ 'is-dragging': isDragging }"
         tabindex="0"
         aria-label="Avisos gerais. Role para os lados para ver mais."
         @pointerdown="startDrag"
@@ -234,8 +192,7 @@ h1 { margin: 0; min-width: 0; color: #0a6a4c; font-size: 28px; font-weight: 700;
   cursor: grabbing;
 }
 
-.notices.is-dragging,
-.notices.is-settling {
+.notices.is-dragging {
   scroll-snap-type: none;
 }
 
