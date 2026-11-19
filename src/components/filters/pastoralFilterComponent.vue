@@ -63,7 +63,6 @@ function closeOnOutsideClick(event) {
 
 // Busca as pastorais ao montar o componente
 onMounted(() => {
-  pastoralStore.getAllPastorals()
   document.addEventListener('pointerdown', closeOnOutsideClick)
 })
 
