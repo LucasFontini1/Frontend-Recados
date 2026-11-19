@@ -1,50 +1,60 @@
 import { defineStore } from 'pinia'
-import { reactive, computed } from 'vue'
+import { computed, reactive } from 'vue'
 import messageApi from '@/api/messageApi'
 
+const CACHE_TTL = 60_000
+
 export const useMessageStore = defineStore('message', () => {
-    const state = reactive({
-        messages: [],
-        errorText: '',
-        haveError: false,
-        notices: [],
-    })
+  const state = reactive({
+    messages: [],
+    notices: [],
+    errorText: '',
+    haveError: false,
+    lastLoaded: 0,
+  })
+  let pending = null
+  const messages = computed(() => state.messages)
+  const notices = computed(() => state.notices)
+  const errorText = computed(() => state.errorText)
+  const haveError = computed(() => state.haveError)
 
-    const messages = computed(() => state.messages)
-    const errorText = computed(() => state.errorText)
-    const haveError = computed(() => state.haveError)
-    const notices = computed(() => state.notices)
+  async function getAllMessages(force = false) {
+    if (pending) return pending
+    if (!force && state.lastLoaded && Date.now() - state.lastLoaded < CACHE_TTL) return
 
-    const getAllMessages = async () => {
-        try {
-            state.haveError = false
-            state.errorText = ''
-            const response = await messageApi.getAll()
-            state.messages = Array.isArray(response.data)
-                ? response.data
-                : response.data?.results ?? []
+    pending = (async () => {
+      state.haveError = false
+      state.errorText = ''
+      const results = await Promise.allSettled([messageApi.getAll(), messageApi.getNotices()])
+      const extract = response => Array.isArray(response.data) ? response.data : response.data?.results ?? []
 
-            console.log('Mensagens carregadas com sucesso:', state.messages)
+      if (results[0].status === 'fulfilled') {
+        state.messages = extract(results[0].value)
+      }
+      if (results[1].status === 'fulfilled') {
+        state.notices = extract(results[1].value).sort((a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        )
+      }
+      if (results.some(result => result.status === 'rejected')) {
+        state.haveError = true
+        state.errorText = 'Não foi possível carregar todas as publicações.'
+        // Não descartar dados que já estavam visíveis se uma requisição falhar.
+      } else {
+        state.lastLoaded = Date.now()
+      }
+    })()
 
-            const noticesResponse = await messageApi.getNotices()
-            const notices = Array.isArray(noticesResponse.data)
-                ? noticesResponse.data
-                : noticesResponse.data?.results ?? []
-            state.notices = [...notices].sort((a, b) =>
-                new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-            )
-        } catch (error) {
-            console.error('Erro ao buscar mensagens:', error)
-            state.haveError = true
-            state.errorText = 'Não foi possível carregar as mensagens.'
-        }
+    try {
+      await pending
+    } finally {
+      pending = null
     }
+  }
 
-    return {
-        messages,
-        errorText,
-        haveError,
-        notices,
-        getAllMessages,
-    }
+  function invalidate() {
+    state.lastLoaded = 0
+  }
+
+  return { messages, notices, errorText, haveError, getAllMessages, invalidate }
 })
