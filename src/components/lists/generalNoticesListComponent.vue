@@ -141,6 +141,7 @@ onUnmounted(() => {
 <style scoped>
 .notices {
   --visible-cards: 1;
+  box-sizing: border-box;
   display: flex;
   flex-wrap: nowrap;
   gap: 20px;
@@ -174,6 +175,7 @@ onUnmounted(() => {
 }
 
 .notices > li {
+  box-sizing: border-box;
   flex: 0 0 calc((100% - (var(--visible-cards) - 1) * 20px) / var(--visible-cards));
   min-width: 0;
   scroll-snap-align: start;
@@ -260,6 +262,15 @@ h1 {
   line-height: 20px;
 }
 
+@media (max-width: 600px) {
+  .notices-section { margin-top: 30px; }
+  .heading-row { gap: 8px; align-items: center; }
+  h1 { font-size: 21px; line-height: 1.4; }
+  .section-icon { width: 32px; height: 32px; font-size: 19px; }
+  .section-description { margin: 8px 0 0; font-size: 12px; }
+  .notices { gap: 12px; scroll-padding-inline: 0; padding-inline: 0; }
+  .notices > li { flex-basis: 100%; }
+}
 @media (min-width: 800px) {
   .notices {
     --visible-cards: 2;
