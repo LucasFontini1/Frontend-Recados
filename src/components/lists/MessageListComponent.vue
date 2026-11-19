@@ -140,17 +140,25 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="carousel-header">
-    <h1><span class="mdi mdi-calendar-range"></span>Próximos Eventos e Datas</h1>
-    <div class="carousel-controls" aria-label="Navegação dos recados">
-      <button type="button" aria-label="Ver recado anterior" :disabled="!canPrevious" @click="moveCards(-1)">
-        <span class="mdi mdi-chevron-left" aria-hidden="true"></span>
-      </button>
-      <button type="button" aria-label="Ver próximo recado" :disabled="!canNext" @click="moveCards(1)">
-        <span class="mdi mdi-chevron-right" aria-hidden="true"></span>
-      </button>
-    </div>
-  </div>
+  <section class="events-section" aria-labelledby="events-heading">
+    <header class="section-header">
+      <div class="heading-row">
+        <span class="section-icon mdi mdi-calendar-range" aria-hidden="true"></span>
+        <h1 id="events-heading">Próximos Eventos e Datas</h1>
+        <span class="item-count" :aria-label="`${messageStore.messages.length} eventos e recados`">{{ messageStore.messages.length }}</span>
+      </div>
+      <div class="description-row">
+        <p class="section-description">Acompanhe os próximos encontros e celebrações.</p>
+        <div class="carousel-controls" aria-label="Navegação dos recados">
+          <button type="button" aria-label="Ver recado anterior" :disabled="!canPrevious" @click="moveCards(-1)">
+            <span class="mdi mdi-chevron-left" aria-hidden="true"></span>
+          </button>
+          <button type="button" aria-label="Ver próximo recado" :disabled="!canNext" @click="moveCards(1)">
+            <span class="mdi mdi-chevron-right" aria-hidden="true"></span>
+          </button>
+        </div>
+      </div>
+    </header>
   <ul
     ref="carousel"
     class="messages"
@@ -171,23 +179,23 @@ onUnmounted(() => {
       <message-card-component :message="m" @open-detail="emit('open-detail', $event)" />
     </li>
   </ul>
+  </section>
 </template>
 
 <style scoped>
-.carousel-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
-.carousel-header h1 { flex: 1; min-width: 0; }
-.carousel-controls { display: flex; align-items: center; gap: 8px; margin-top: 20px; }
-.carousel-controls button { display: grid; place-items: center; width: 40px; height: 40px; flex-shrink: 0; border: 1px solid #cbded3; border-radius: 50%; background: #fff; color: #0a4c34; font-size: 25px; cursor: pointer; }
-.carousel-controls button:hover:not(:disabled) { background: #e6f1eb; border-color: #0a6a4c; }
-.carousel-controls button:disabled { opacity: .35; cursor: not-allowed; }
+.events-section { min-width: 0; margin-top: 24px; font-family: 'Comfortaa', sans-serif; }
+.section-header { margin-bottom: 14px; }
+.heading-row { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.section-icon { display: grid; place-items: center; flex-shrink: 0; width: 36px; height: 36px; border-radius: 6px; background: #e2eee8; color: #0a6a4c; font-size: 22px; }
+h1 { margin: 0; min-width: 0; color: #0a6a4c; font-size: 28px; font-weight: 700; line-height: 1.4; }
+.item-count { display: grid; flex-shrink: 0; place-items: center; min-width: 24px; height: 24px; padding: 0 6px; border-radius: 20px; background: #e2eee8; color: #0a6a4c; font-size: 11px; font-weight: 700; }
+.description-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 46px; margin-top: 6px; }
+.section-description { min-width: 0; margin: 0; color: #647273; font-size: 12px; line-height: 20px; }
+.carousel-controls { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.carousel-controls button { display: grid; place-items: center; flex-shrink: 0; width: 42px; height: 42px; border: 1px solid #abcabc; border-radius: 50%; background: #fff; box-shadow: 0 2px 6px #163a2c14; color: #0a4c34; font-size: 27px; cursor: pointer; }
+.carousel-controls button:hover:not(:disabled) { border-color: #0a6a4c; background: #e6f1eb; }
+.carousel-controls button:disabled { opacity: .48; cursor: not-allowed; }
 .carousel-controls button:focus-visible { outline: 2px solid #0a6a4c; outline-offset: 3px; }
-@media (max-width: 600px) {
-  .carousel-header { gap: 8px; align-items: flex-end; }
-  .carousel-header h1 { max-width: calc(100% - 96px); }
-  .carousel-controls { gap: 6px; margin-top: 20px; }
-  .carousel-controls button { width: 36px; height: 36px; font-size: 23px; }
-}
-
 .messages {
   --visible-cards: 1;
   box-sizing: border-box;
@@ -255,38 +263,18 @@ onUnmounted(() => {
   background: #7ca99b;
 }
 
-h1 {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 28px;
-  font-weight: 700;
-  color: #0a6a4c;
-  font-family: 'comfortaa', sans-serif;
-  margin-top: 20px;
-}
-
 @media (max-width: 600px) {
-  h1 { font-size: 21px; line-height: 1.4; align-items: flex-start; gap: 10px; }
-  h1 .mdi { flex-shrink: 0; }
+  .events-section { margin-top: 22px; }
+  .heading-row { gap: 8px; }
+  h1 { font-size: 21px; }
+  .section-icon { width: 32px; height: 32px; font-size: 19px; }
+  .description-row { gap: 10px; }
+  .carousel-controls { gap: 6px; }
+  .carousel-controls button { width: 38px; height: 38px; font-size: 24px; }
   .messages { gap: 12px; scroll-padding-inline: 0; padding-inline: 0; }
   .messages > li { flex-basis: 100%; }
 }
-@media (min-width: 800px) {
-  .messages {
-    --visible-cards: 2;
-  }
-}
-
-@media (min-width: 1200px) {
-  .messages {
-    --visible-cards: 3;
-  }
-}
-
-@media (min-width: 1600px) {
-  .messages {
-    --visible-cards: 4;
-  }
-}
+@media (min-width: 800px) { .messages { --visible-cards: 2; } }
+@media (min-width: 1200px) { .messages { --visible-cards: 3; } }
+@media (min-width: 1600px) { .messages { --visible-cards: 4; } }
 </style>
