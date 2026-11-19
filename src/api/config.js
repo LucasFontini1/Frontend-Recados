@@ -1,18 +1,24 @@
 ﻿import axios from 'axios'
 import { useAuthStore } from '@/stores/authStore'
+import { useTemplateStore } from '@/stores/templateStore'
 
 const url = import.meta.env.VITE_URL_BACKEND || 'http://127.0.0.1:8000/api/'
 const api = axios.create({ baseURL: `${url.replace(/\/+$/, '')}/` })
 
 api.interceptors.request.use((config) => {
+  useTemplateStore().beginLoading()
   const token = localStorage.getItem('access_token')
   if (token) config.headers.Authorization = `Bearer ${token}`
   return config
 })
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    useTemplateStore().endLoading()
+    return response
+  },
   async (error) => {
+    useTemplateStore().endLoading()
     const request = error.config
     if (error.response?.status !== 401 || !request || request._retry) {
       return Promise.reject(error)
