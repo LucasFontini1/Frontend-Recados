@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, onBeforeUnmount, reactive, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import pastoralApi from '@/api/pastoralApi'
@@ -21,6 +21,47 @@ const messages = ref([])
 const questions = ref([])
 const users = ref([])
 const editId = ref(null)
+const imageFile = ref(null)
+const imagePreview = ref('')
+const removeImage = ref(false)
+const imageInput = ref(null)
+let localImageUrl = null
+
+function releaseLocalImage() {
+  if (localImageUrl) URL.revokeObjectURL(localImageUrl)
+  localImageUrl = null
+}
+function clearImage() {
+  releaseLocalImage()
+  imageFile.value = null
+  imagePreview.value = ''
+  removeImage.value = true
+  if (imageInput.value) imageInput.value.value = ''
+}
+function onImageSelected(event) {
+  const file = event.target.files?.[0]
+  if (!file) return
+  if (!['image/jpeg', 'image/png'].includes(file.type)) {
+    errorMessage.value = 'Use uma imagem JPG ou PNG.'
+    event.target.value = ''
+    return
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    errorMessage.value = 'A imagem deve ter no máximo 5 MB.'
+    event.target.value = ''
+    return
+  }
+  releaseLocalImage()
+  localImageUrl = URL.createObjectURL(file)
+  imageFile.value = file
+  imagePreview.value = localImageUrl
+  removeImage.value = false
+  errorMessage.value = ''
+}
+function onPublicationTypeChange() {
+  if (form.is_notice) clearImage()
+}
+onBeforeUnmount(releaseLocalImage)
 const groupSelections = reactive({})
 const answers = reactive({})
 const form = reactive({
@@ -126,6 +167,11 @@ async function loadData() {
   loading.value = false
 }
 function resetForm() {
+  releaseLocalImage()
+  imageFile.value = null
+  imagePreview.value = ''
+  removeImage.value = false
+  if (imageInput.value) imageInput.value.value = ''
   editId.value = null
   Object.assign(form, {
     name: '', color: '#0a6a4c', title: '', text: '',
@@ -148,6 +194,7 @@ function localDate(value) {
     .toISOString().slice(0, 16)
 }
 function startEdit(item) {
+  resetForm()
   editId.value = item.id
   if (activeTab.value === 'messages') {
     Object.assign(form, {
@@ -158,6 +205,9 @@ function startEdit(item) {
       event_date: localDate(item.event_date),
       is_notice: item.is_notice,
     })
+    if (!item.is_notice) {
+      imagePreview.value = item.image?.url || ''
+    }
   } else {
     form.name = item.name
     form.color = item.color || '#0a6a4c'
@@ -195,10 +245,18 @@ async function saveRecord() {
       event_date: form.is_notice || !form.event_date ? null : new Date(form.event_date).toISOString(),
       is_notice: form.is_notice,
     }
-    await execute(
-      () => updating ? messageApi.updateMessage(id, payload) : messageApi.createMessage(payload),
-      updating ? 'Publicação atualizada.' : 'Publicação criada.',
-    )
+    await execute(async () => {
+      if (!form.is_notice && imageFile.value) {
+        const response = await messageApi.uploadImage(imageFile.value)
+        payload.attachment_key = response.data.attachment_key
+      } else if (removeImage.value || form.is_notice) {
+        // Remove a imagem ao excluir o anexo ou transformar recado em aviso.
+        payload.attachment_key = null
+      }
+      return updating
+        ? messageApi.updateMessage(id, payload)
+        : messageApi.createMessage(payload)
+    }, updating ? 'Publicação atualizada.' : 'Publicação criada.')
   } else if (activeTab.value === 'pastorals') {
     const payload = { name: form.name.trim(), color: form.color }
     await execute(
@@ -282,7 +340,7 @@ onMounted(loadData)
         <form v-else @submit.prevent="saveRecord">
           <template v-if="activeTab === 'messages'">
             <label for="record-type">Tipo</label>
-            <select id="record-type" v-model="form.is_notice">
+            <select id="record-type" v-model="form.is_notice" @change="onPublicationTypeChange">
               <option :value="false">Evento / recado</option>
               <option :value="true">Aviso geral</option>
             </select>
@@ -309,6 +367,19 @@ onMounted(loadData)
             <template v-if="!form.is_notice">
               <label for="record-date">Data e hora do evento (opcional)</label>
               <input id="record-date" v-model="form.event_date" type="datetime-local" />
+              <div class="image-upload-field">
+                <label for="record-image">Imagem do evento ou recado (opcional)</label>
+                <p class="image-help">JPG ou PNG, até 5 MB. A imagem aparece nos cartões e nos detalhes.</p>
+                <input id="record-image" ref="imageInput" type="file" accept="image/jpeg,image/png"
+                  :disabled="saving" @change="onImageSelected" />
+                <div v-if="imagePreview" class="image-preview">
+                  <img :src="imagePreview" alt="Prévia da imagem do recado" />
+                  <button class="secondary" type="button" :disabled="saving" @click="clearImage">
+                    <span class="mdi mdi-delete-outline" aria-hidden="true"></span> Remover imagem
+                  </button>
+                </div>
+                <p v-else class="image-help">Sem imagem selecionada.</p>
+              </div>
             </template>
           </template>
           <template v-else>
@@ -319,7 +390,7 @@ onMounted(loadData)
           </template>
           <div class="form-actions">
             <button type="submit" :disabled="saving || (activeTab === 'messages' && (!pastorals.length || !categories.length))">
-              {{ saving ? 'Salvando...' : editId !== null ? 'Salvar alterações' : 'Criar' }}
+              {{ saving ? 'Enviando e salvando...' : editId !== null ? 'Salvar alterações' : 'Criar' }}
             </button>
             <button v-if="editId !== null" type="button" class="secondary" @click="resetForm">Cancelar</button>
           </div>
@@ -482,4 +553,12 @@ button.danger { background: #a33535; color: white; }
   .tabs { margin-inline: 0; padding-inline: 0; }
   .actions, .form-actions { grid-template-columns: 1fr; }
 }
+.image-upload-field { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; padding: 15px; border: 1px dashed #a8c9b6; border-radius: 10px; background: #f8fbf9; }
+.image-upload-field label { margin: 0; }
+.image-upload-field input[type=file] { max-width: 100%; padding: 10px; font-size: 12px; background: white; }
+.image-help { margin: 0; font-size: 11px; color: #647273; line-height: 1.6; }
+.image-preview { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; margin-top: 5px; }
+.image-preview img { width: min(100%, 360px); max-height: 220px; object-fit: contain; border-radius: 8px; border: 1px solid #d6e1df; background: #fff; }
+.image-preview button { min-height: 40px; }
+@media (max-width: 600px) { .image-upload-field { padding: 12px; } .image-preview button { width: 100%; } }
 </style>
