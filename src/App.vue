@@ -1,8 +1,20 @@
 <script setup>
 import appHeader from './components/layout/appHeader.vue'
 import { useTemplateStore } from './stores/templateStore.js'
+import { ref, watch, onBeforeUnmount } from 'vue'
 
 const templateStore = useTemplateStore()
+const showLoader = ref(false)
+let loaderTimeout = null
+watch(() => templateStore.loading, loading => {
+  clearTimeout(loaderTimeout)
+  if (loading) {
+    loaderTimeout = setTimeout(() => { showLoader.value = true }, 150)
+  } else {
+    showLoader.value = false
+  }
+}, { immediate: true })
+onBeforeUnmount(() => clearTimeout(loaderTimeout))
 
 </script>
 
@@ -12,7 +24,7 @@ const templateStore = useTemplateStore()
     <RouterView />
   </div>
   <div
-    v-if="templateStore.loading"
+    v-if="showLoader"
     class="manual-loading-overlay"
     role="status"
     aria-live="polite"
@@ -35,17 +47,19 @@ const templateStore = useTemplateStore()
   align-items: center;
   justify-content: center;
   gap: 12px;
-  background: #0a4c34a1;
-  color: #0a0a0a;
-  font-size: 30px;
-  font-family: 'comfortaa';
+  background: rgba(10, 45, 33, 0.76);
+  color: #fff;
+  font-size: 17px;
+  font-weight: 700;
+  font-family: 'Comfortaa', sans-serif;
+  backdrop-filter: blur(3px);
 }
 
 .manual-loading-spinner {
   width: 44px;
   height: 44px;
-  border: 4px solid #d1d5db;
-  border-top-color: #333;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
   border-radius: 50%;
   animation: manual-loading-spin 0.8s linear infinite;
 }
