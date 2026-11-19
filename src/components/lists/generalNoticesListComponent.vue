@@ -1,9 +1,40 @@
 <script setup>
 import { useMessageStore } from '@/stores/messageStore'
-import { nextTick, onUnmounted, ref } from 'vue'
+import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import noticeCardComponent from '../cards/noticeCardComponent.vue'
 
 const messageStore = useMessageStore()
+
+const emit = defineEmits(['open-detail'])
+const carousel = ref(null)
+const canPrevious = ref(false)
+const canNext = ref(false)
+
+function updateNavigation() {
+  const list = carousel.value
+  if (!list) return
+  canPrevious.value = list.scrollLeft > 3
+  canNext.value = list.scrollLeft + list.clientWidth < list.scrollWidth - 3
+}
+
+function moveCards(direction) {
+  const list = carousel.value
+  const firstCard = list?.firstElementChild
+  if (!firstCard) return
+  const gap = parseFloat(getComputedStyle(list).columnGap) || 0
+  const distance = firstCard.getBoundingClientRect().width + gap
+  list.scrollBy({
+    left: distance * direction,
+    behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
+  })
+}
+
+watch(() => messageStore.notices.length, async () => {
+  await nextTick()
+  updateNavigation()
+}, { immediate: true })
+onMounted(() => window.addEventListener('resize', updateNavigation))
+
 const isDragging = ref(false)
 const isSettling = ref(false)
 let animationFrame = null
@@ -101,6 +132,7 @@ function preventDragClick(event) {
 }
 
 onUnmounted(() => {
+  window.removeEventListener('resize', updateNavigation)
   cancelAnimationFrame(animationFrame)
   isSettling.value = false
 })
@@ -115,9 +147,20 @@ onUnmounted(() => {
         <h1 id="notices-heading">Avisos Gerais</h1>
         <span class="notice-count" :aria-label="`${messageStore.notices.length} avisos`">{{ messageStore.notices.length }}</span>
       </div>
-      <p class="section-description">Informações importantes da nossa comunidade.</p>
+      <div class="description-row">
+        <p class="section-description">Informações importantes da nossa comunidade.</p>
+        <div class="carousel-controls" aria-label="Navegação dos avisos">
+          <button type="button" aria-label="Ver aviso anterior" :disabled="!canPrevious" @click="moveCards(-1)">
+            <span class="mdi mdi-chevron-left" aria-hidden="true"></span>
+          </button>
+          <button type="button" aria-label="Ver próximo aviso" :disabled="!canNext" @click="moveCards(1)">
+            <span class="mdi mdi-chevron-right" aria-hidden="true"></span>
+          </button>
+        </div>
+      </div>
     </header>
     <ul
+      ref="carousel"
       class="notices"
       :class="{ 'is-dragging': isDragging, 'is-settling': isSettling }"
       tabindex="0"
@@ -129,16 +172,30 @@ onUnmounted(() => {
       @lostpointercapture="endDrag"
       @pointerleave="leaveDrag"
       @click.capture="preventDragClick"
+      @scroll.passive="updateNavigation"
       @dragstart.prevent
     >
       <li v-for="notice in messageStore.notices" :key="notice.id">
-        <notice-card-component :message="notice" />
+        <notice-card-component :message="notice" @open-detail="emit('open-detail', $event)" />
       </li>
     </ul>
   </section>
 </template>
 
 <style scoped>
+.description-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.description-row .section-description { min-width: 0; }
+.carousel-controls { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.carousel-controls button { display: grid; place-items: center; width: 40px; height: 40px; border: 1px solid #cbded3; border-radius: 50%; background: #fff; color: #0a4c34; font-size: 25px; cursor: pointer; }
+.carousel-controls button:hover:not(:disabled) { background: #e6f1eb; border-color: #0a6a4c; }
+.carousel-controls button:disabled { opacity: .35; cursor: not-allowed; }
+.carousel-controls button:focus-visible { outline: 2px solid #0a6a4c; outline-offset: 3px; }
+@media (max-width: 600px) {
+  .description-row .section-description { flex: 1; }
+  .carousel-controls { gap: 6px; }
+  .carousel-controls button { width: 36px; height: 36px; font-size: 23px; }
+}
+
 .notices {
   --visible-cards: 1;
   box-sizing: border-box;
