@@ -137,6 +137,7 @@ onMounted(async () => {
 <style scoped>
 .messages {
   --visible-cards: 1;
+  box-sizing: border-box;
   display: flex;
   flex-wrap: nowrap;
   gap: 20px;
@@ -170,6 +171,7 @@ onMounted(async () => {
 }
 
 .messages > li {
+  box-sizing: border-box;
   flex: 0 0 calc((100% - (var(--visible-cards) - 1) * 20px) / var(--visible-cards));
   min-width: 0;
   scroll-snap-align: start;
@@ -211,6 +213,12 @@ h1 {
   margin-top: 20px;
 }
 
+@media (max-width: 600px) {
+  h1 { font-size: 21px; line-height: 1.4; align-items: flex-start; gap: 10px; }
+  h1 .mdi { flex-shrink: 0; }
+  .messages { gap: 12px; scroll-padding-inline: 0; padding-inline: 0; }
+  .messages > li { flex-basis: 100%; }
+}
 @media (min-width: 800px) {
   .messages {
     --visible-cards: 2;
