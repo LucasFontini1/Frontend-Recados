@@ -1,7 +1,12 @@
 <script setup>
 import { useMessageStore } from '@/stores/messageStore'
+import LoadingSkeleton from '@/components/layout/LoadingSkeleton.vue'
 import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import messageCardComponent from '../cards/messageCardComponent.vue'
+
+defineProps({
+  loading: { type: Boolean, default: false },
+})
 
 const messageStore = useMessageStore()
 
@@ -121,7 +126,8 @@ onUnmounted(() => {
         <p class="section-description">Acompanhe os próximos encontros e celebrações.</p>
       </div>
     </header>
-  <div class="carousel-shell">
+  <LoadingSkeleton v-if="loading" variant="cards" :count="3" />
+  <div v-else class="carousel-shell">
     <ul
       ref="carousel"
       class="messages"
@@ -151,7 +157,7 @@ onUnmounted(() => {
       <span class="mdi mdi-chevron-right" aria-hidden="true"></span>
     </button>
   </div>
-  <p v-if="!messageStore.filteredMessages.length" class="no-results" role="status">
+  <p v-if="!loading && !messageStore.filteredMessages.length" class="no-results" role="status">
     Nenhum evento ou recado encontrado para os filtros selecionados.
   </p>
   </section>
