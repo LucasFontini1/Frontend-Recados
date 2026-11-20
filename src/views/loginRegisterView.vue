@@ -7,7 +7,7 @@ const router = useRouter()
 const auth = useAuthStore()
 const mode = ref('login')
 const isRegister = computed(() => mode.value === 'register')
-const form = reactive({ name: '', email: '', password: '', confirmation: '' })
+const form = reactive({ name: '', email: '', password: '', confirmation: '', accept_terms: false, accept_privacy: false })
 const loading = ref(false)
 const showPassword = ref(false)
 const errorMessage = ref('')
@@ -19,6 +19,8 @@ function changeMode(nextMode) {
   mode.value = nextMode
   form.password = ''
   form.confirmation = ''
+  form.accept_terms = false
+  form.accept_privacy = false
   errorMessage.value = ''
   successMessage.value = ''
   showPassword.value = false
@@ -57,11 +59,15 @@ async function submit() {
     errorMessage.value = 'As senhas precisam ser iguais.'
     return
   }
+  if (isRegister.value && (!form.accept_terms || !form.accept_privacy)) {
+    errorMessage.value = 'Leia e confirme os Termos de Uso e a Política de Privacidade para criar sua conta.'
+    return
+  }
   loading.value = true
   try {
     const credentials = { email: form.email.trim(), password: form.password }
     if (isRegister.value) {
-      await auth.register({ ...credentials, name: form.name.trim() })
+      await auth.register({ ...credentials, name: form.name.trim(), accept_terms: form.accept_terms, accept_privacy: form.accept_privacy })
       await auth.login(credentials)
       form.password = ''
       form.confirmation = ''
@@ -203,7 +209,18 @@ async function submit() {
                 required
               />
             </div>
-            <button class="submit-button" type="submit">
+            <div v-if="isRegister" class="legal-acceptance" aria-label="Confirmações obrigatórias de cadastro">
+              <label class="accept-row" for="accept-terms">
+                <input id="accept-terms" v-model="form.accept_terms" type="checkbox" name="accept_terms" required />
+                <span>Li e concordo com os <RouterLink to="/termos-de-uso" target="_blank" rel="noopener noreferrer">Termos de Uso</RouterLink>.</span>
+              </label>
+              <label class="accept-row" for="accept-privacy">
+                <input id="accept-privacy" v-model="form.accept_privacy" type="checkbox" name="accept_privacy" required />
+                <span>Li a <RouterLink to="/politica-de-privacidade" target="_blank" rel="noopener noreferrer">Política de Privacidade</RouterLink> e estou ciente de como meus dados serão utilizados.</span>
+              </label>
+              <p class="legal-helper">As duas confirmações são necessárias para criar uma conta. Os documentos abrem em outra aba.</p>
+            </div>
+            <button class="submit-button" type="submit" :disabled="isRegister && (!form.accept_terms || !form.accept_privacy)">
               <span v-if="loading" class="mdi mdi-loading mdi-spin" aria-hidden="true"></span>
               {{ loading ? 'Aguarde...' : isRegister ? 'Criar minha conta' : 'Entrar' }}
               <span v-if="!loading" class="mdi mdi-arrow-right" aria-hidden="true"></span>
@@ -455,6 +472,12 @@ small {
   font-size: 12px;
   color: #647273;
 }
+.legal-acceptance { margin: 18px 0; border: 1px solid #d6e1df; background: #f7faf8; border-radius: 10px; padding: 16px; }
+.accept-row { display: flex; align-items: flex-start; gap: 10px; margin: 0 0 13px; cursor: pointer; font-size: 12px; line-height: 1.65; }
+.accept-row input[type='checkbox'] { flex: 0 0 18px; width: 18px; min-width: 18px; height: 18px; margin-top: 2px; accent-color: #0a6a4c; }
+.accept-row span { flex: 1; }
+.accept-row a { color: #0a6a4c; font-weight: 700; }
+.legal-helper { margin: 0; color: #647273; font-size: 11px; line-height: 1.6; }
 @media (max-width: 700px) {
   .auth-page {
     padding: 24px 16px 36px;
