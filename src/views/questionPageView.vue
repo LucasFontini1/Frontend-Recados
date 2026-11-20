@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, reactive, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
+import LoadingSkeleton from '@/components/layout/LoadingSkeleton.vue'
 import { useAuthStore } from '@/stores/authStore'
 import questionApi from '@/api/questionApi'
 
@@ -76,8 +77,12 @@ async function submit() {
     <section v-if="auth.isAuthenticated" class="panel history">
       <h2>Minhas perguntas</h2>
       <p class="intro">Acompanhe aqui quando a diretoria responder. As respostas aparecem ao atualizar a página.</p>
-      <p v-if="loadingQuestions">Carregando suas perguntas...</p>
-      <p v-else-if="!myQuestions.length">Você ainda não enviou perguntas.</p>
+      <LoadingSkeleton
+        v-if="loadingQuestions && !myQuestions.length"
+        variant="rows"
+        :count="2"
+      />
+      <p v-else-if="!loadingQuestions && !myQuestions.length">Você ainda não enviou perguntas.</p>
       <article v-for="question in myQuestions" :key="question.id" class="question-item">
         <div class="question-title">
           <h3>{{ question.subject }}</h3>
