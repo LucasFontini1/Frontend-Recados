@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, onBeforeUnmount, reactive, ref } from 'vue'
 import { RouterLink } from 'vue-router'
+import LoadingSkeleton from '@/components/layout/LoadingSkeleton.vue'
 import { useAuthStore } from '@/stores/authStore'
 import pastoralApi from '@/api/pastoralApi'
 import categoryApi from '@/api/categoryApi'
@@ -330,7 +331,6 @@ onMounted(loadData)
 
       <p v-if="errorMessage" class="error" role="alert">{{ errorMessage }}</p>
       <p v-if="feedback" class="success" role="status">{{ feedback }}</p>
-      <p v-if="loading" class="info">Atualizando informações...</p>
 
       <section v-if="['messages', 'pastorals', 'categories'].includes(activeTab)" class="panel">
         <h2>{{ editId !== null ? 'Editar' : 'Criar' }} {{ currentConfig.singular }}</h2>
@@ -407,9 +407,14 @@ onMounted(loadData)
         <p v-if="!permissionFor('view', currentConfig.model)" class="info">
           Você precisa da permissão de visualização deste conteúdo.
         </p>
-        <p v-else-if="!filteredItems.length" class="hint">Nenhum resultado encontrado.</p>
+        <LoadingSkeleton
+          v-else-if="loading && !currentItems.length"
+          variant="rows"
+          :count="3"
+        />
+        <p v-else-if="!loading && !filteredItems.length" class="hint">Nenhum resultado encontrado.</p>
 
-        <template v-if="permissionFor('view', currentConfig.model)">
+        <template v-if="permissionFor('view', currentConfig.model) && (!loading || currentItems.length)">
           <article v-for="item in filteredItems" :key="item.id" class="record">
             <template v-if="activeTab === 'questions'">
               <div class="record-heading">
