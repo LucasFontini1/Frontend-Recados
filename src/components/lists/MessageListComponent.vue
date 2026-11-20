@@ -40,10 +40,11 @@ function moveCards(direction) {
   })
 }
 
-watch(() => messageStore.messages.length, async () => {
+watch(() => messageStore.filteredMessages.map(item => item.id).join(','), async () => {
   await nextTick()
+  if (carousel.value) carousel.value.scrollLeft = 0
   updateNavigation()
-}, { immediate: true })
+}, { immediate: true, flush: 'post' })
 onMounted(() => window.addEventListener('resize', updateNavigation))
 
 const isDragging = ref(false)
@@ -114,7 +115,7 @@ onUnmounted(() => {
       <div class="heading-row">
         <span class="section-icon mdi mdi-calendar-range" aria-hidden="true"></span>
         <h1 id="events-heading">Próximos Eventos e Datas</h1>
-        <span class="item-count" :aria-label="`${messageStore.messages.length} eventos e recados`">{{ messageStore.messages.length }}</span>
+        <span class="item-count" :aria-label="`${messageStore.filteredMessages.length} eventos e recados`">{{ messageStore.filteredMessages.length }}</span>
       </div>
       <div class="description-row">
         <p class="section-description">Acompanhe os próximos encontros e celebrações.</p>
@@ -137,7 +138,7 @@ onUnmounted(() => {
       @scroll.passive="updateNavigation"
       @dragstart.prevent
     >
-      <li v-for="m in messageStore.messages" :key="m.id">
+      <li v-for="m in messageStore.filteredMessages" :key="m.id">
         <message-card-component :message="m" @open-detail="emit('open-detail', $event)" />
       </li>
     </ul>
@@ -150,6 +151,9 @@ onUnmounted(() => {
       <span class="mdi mdi-chevron-right" aria-hidden="true"></span>
     </button>
   </div>
+  <p v-if="!messageStore.filteredMessages.length" class="no-results" role="status">
+    Nenhum evento ou recado encontrado para os filtros selecionados.
+  </p>
   </section>
 </template>
 
@@ -268,4 +272,5 @@ h1 { margin: 0; min-width: 0; color: #0a6a4c; font-size: 28px; font-weight: 700;
   .overlay-arrow--previous { left: 5px; }
   .overlay-arrow--next { right: 5px; }
 }
+.no-results { margin: 4px 0 16px; color: #647273; font-size: 12px; line-height: 1.6; }
 </style>
