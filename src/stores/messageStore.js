@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import { computed, reactive } from 'vue'
 import messageApi from '@/api/messageApi'
+import { usePastoralStore } from '@/stores/pastoralStore'
+import { useCategoryStore } from '@/stores/categoryStore'
 
 const CACHE_TTL = 60_000
 
@@ -15,6 +17,21 @@ export const useMessageStore = defineStore('message', () => {
   let pending = null
   const messages = computed(() => state.messages)
   const notices = computed(() => state.notices)
+  const pastoralStore = usePastoralStore()
+  const categoryStore = useCategoryStore()
+
+  function matchesFilters(item) {
+    // Endpoints de leitura retornam objetos, mas IDs diretos também são aceitos.
+    const pastoralId = item.pastoral?.id ?? item.pastoral
+    const categoryId = item.category?.id ?? item.category
+    return (pastoralStore.selectedPastoralId == null ||
+      String(pastoralId) === String(pastoralStore.selectedPastoralId)) &&
+      (categoryStore.selectedCategoryId == null ||
+      String(categoryId) === String(categoryStore.selectedCategoryId))
+  }
+
+  const filteredMessages = computed(() => state.messages.filter(matchesFilters))
+  const filteredNotices = computed(() => state.notices.filter(matchesFilters))
   const errorText = computed(() => state.errorText)
   const haveError = computed(() => state.haveError)
 
@@ -63,5 +80,5 @@ export const useMessageStore = defineStore('message', () => {
     state.lastLoaded = 0
   }
 
-  return { messages, notices, errorText, haveError, getAllMessages, invalidate, hydrate }
+  return { messages, notices, filteredMessages, filteredNotices, errorText, haveError, getAllMessages, invalidate, hydrate }
 })
