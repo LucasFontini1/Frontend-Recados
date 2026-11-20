@@ -1,5 +1,6 @@
 <script setup>
 import appHeader from './components/layout/appHeader.vue'
+import appFooter from './components/layout/appFooter.vue'
 import { useTemplateStore } from './stores/templateStore.js'
 import { ref, watch, onBeforeUnmount } from 'vue'
 
@@ -22,6 +23,7 @@ onBeforeUnmount(() => clearTimeout(loaderTimeout))
   <div class="tot">
     <appHeader />
     <RouterView />
+    <appFooter />
   </div>
   <div
     v-if="showLoader"
@@ -37,6 +39,9 @@ onBeforeUnmount(() => clearTimeout(loaderTimeout))
 
 <style>
 @import url(/src/css/global.css);
+
+.tot { min-height: 100dvh; display: flex; flex-direction: column; }
+.tot > :not(header):not(footer) { flex-shrink: 0; }
 
 .manual-loading-overlay {
   position: fixed;
