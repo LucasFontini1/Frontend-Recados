@@ -12,6 +12,8 @@ const router = createRouter({
       meta: { requiresAdmin: true },
     },
     { path: '/login', name: 'login', component: () => import('@/views/loginRegisterView.vue') },
+    { path: '/termos-de-uso', name: 'terms', component: () => import('@/views/termsOfUseView.vue') },
+    { path: '/politica-de-privacidade', name: 'privacy', component: () => import('@/views/privacyPolicyView.vue') },
   ],
 })
 
