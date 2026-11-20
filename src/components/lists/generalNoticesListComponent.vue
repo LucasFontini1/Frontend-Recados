@@ -40,10 +40,11 @@ function moveCards(direction) {
   })
 }
 
-watch(() => messageStore.notices.length, async () => {
+watch(() => messageStore.filteredNotices.map(item => item.id).join(','), async () => {
   await nextTick()
+  if (carousel.value) carousel.value.scrollLeft = 0
   updateNavigation()
-}, { immediate: true })
+}, { immediate: true, flush: 'post' })
 onMounted(() => window.addEventListener('resize', updateNavigation))
 
 const isDragging = ref(false)
@@ -114,7 +115,7 @@ onUnmounted(() => {
       <div class="heading-row">
         <span class="section-icon mdi mdi-shield-check-outline" aria-hidden="true"></span>
         <h1 id="notices-heading">Avisos Gerais</h1>
-        <span class="item-count" :aria-label="`${messageStore.notices.length} avisos`">{{ messageStore.notices.length }}</span>
+        <span class="item-count" :aria-label="`${messageStore.filteredNotices.length} avisos`">{{ messageStore.filteredNotices.length }}</span>
       </div>
       <div class="description-row">
         <p class="section-description">Informações importantes da nossa comunidade.</p>
@@ -137,7 +138,7 @@ onUnmounted(() => {
         @scroll.passive="updateNavigation"
         @dragstart.prevent
       >
-        <li v-for="notice in messageStore.notices" :key="notice.id">
+        <li v-for="notice in messageStore.filteredNotices" :key="notice.id">
           <notice-card-component :message="notice" @open-detail="emit('open-detail', $event)" />
         </li>
       </ul>
@@ -150,6 +151,9 @@ onUnmounted(() => {
       <span class="mdi mdi-chevron-right" aria-hidden="true"></span>
     </button>
   </div>
+  <p v-if="!messageStore.filteredNotices.length" class="no-results" role="status">
+    Nenhum aviso geral encontrado para os filtros selecionados.
+  </p>
   </section>
 </template>
 
@@ -268,4 +272,5 @@ h1 { margin: 0; min-width: 0; color: #0a6a4c; font-size: 28px; font-weight: 700;
   .overlay-arrow--previous { left: 5px; }
   .overlay-arrow--next { right: 5px; }
 }
+.no-results { margin: 4px 0 16px; color: #647273; font-size: 12px; line-height: 1.6; }
 </style>
