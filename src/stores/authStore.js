@@ -9,6 +9,7 @@ export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
   const isAuthenticated = computed(() => !!accessToken.value)
   let refreshRequest = null
+  let sessionRequest = null
 
   function logout() {
     accessToken.value = null
@@ -75,15 +76,29 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function refreshUserSession() {
-    if (!accessToken.value && !refreshToken.value) return
-    let expired = true
+    // Cabeçalho e guarda da rota /admin podem pedir o perfil ao mesmo tempo.
+    // Compartilhar a Promise evita requisições duplicadas e estados inconsistentes.
+    if (sessionRequest) return sessionRequest
+
+    sessionRequest = (async () => {
+      if (!accessToken.value && !refreshToken.value) return null
+
+      let expired = true
+      try {
+        expired = !(jwtDecode(accessToken.value).exp * 1000 > Date.now())
+      } catch {
+        // Sessão incompleta ou expirada: tentar renovar pelo refresh token.
+      }
+
+      if (expired) await refreshAccessToken()
+      return refreshUserProfile()
+    })()
+
     try {
-      expired = !(jwtDecode(accessToken.value).exp * 1000 > Date.now())
-    } catch {
-      // Uma sessão incompleta pode ser recuperada pelo refresh token.
+      return await sessionRequest
+    } finally {
+      sessionRequest = null
     }
-    if (expired) await refreshAccessToken()
-    return refreshUserProfile()
   }
 
   return {
