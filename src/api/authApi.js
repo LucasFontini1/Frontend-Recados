@@ -31,8 +31,8 @@ export default {
   login({ email, password }) {
     return getAuthClient().post('token/', { email, password })
   },
-  register({ email, name, password }) {
-    return getAuthClient().post('registro/', { email, name, password })
+  register({ email, name, password, accept_terms, accept_privacy }) {
+    return getAuthClient().post('registro/', { email, name, password, accept_terms, accept_privacy })
   },
   refresh({ refresh }) {
     return getAuthClient().post('token/refresh/', { refresh })
