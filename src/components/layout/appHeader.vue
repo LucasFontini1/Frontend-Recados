@@ -1,5 +1,6 @@
 ﻿<script setup>
 import router from '@/router'
+import PwaInstallButton from './pwaInstallButton.vue'
 import { computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
 
@@ -29,6 +30,7 @@ function logout() {
       <nav class="security" aria-label="Menu principal">
         <RouterLink to="/perguntas" class="header-link">Pergunte à diretoria</RouterLink>
         <RouterLink v-if="auth.isAuthenticated && isAdmin" to="/admin" class="header-link">Administração</RouterLink>
+        <PwaInstallButton />
         <button v-if="!auth.isAuthenticated" @click="router.push('/login')">
           <span class="mdi mdi-security"></span><span class="enter">Entrar</span>
         </button>
@@ -150,6 +152,7 @@ nav.security {
     white-space: normal; font-size: 12px;
   }
   nav.security button { border-radius: 9px; }
-  nav.security button:last-child { grid-column: 1 / -1; }
+  nav.security > button:last-child { grid-column: 1 / -1; }
+  nav.security :deep(.pwa-install) { min-width: 0; }
 }
 </style>
