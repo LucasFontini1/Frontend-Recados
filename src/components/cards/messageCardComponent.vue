@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 
 const emit = defineEmits(['open-detail'])
 
@@ -8,6 +8,18 @@ const props = defineProps({
         type: Object,
         required: true,
     },
+})
+
+const now = ref(new Date())
+let clockInterval = null
+
+onMounted(() => {
+    clockInterval = window.setInterval(() => {
+        now.value = new Date()
+    }, 60_000)
+})
+onBeforeUnmount(() => {
+    if (clockInterval) window.clearInterval(clockInterval)
 })
 
 const failedImage = ref('')
@@ -21,6 +33,16 @@ const eventDate = computed(() => {
     const date = new Date(props.message.event_date)
     return Number.isNaN(date.getTime()) ? null : date
 })
+const eventStatus = computed(() => {
+    if (!eventDate.value || eventDate.value > now.value) return ''
+
+    const today = now.value.toDateString()
+    if (eventDate.value.toDateString() === today) {
+        return 'Está acontecendo hoje'
+    }
+    return 'Este evento já aconteceu'
+})
+
 const eventDay = computed(() =>
     eventDate.value
         ? new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short' })
@@ -54,6 +76,15 @@ const publishedDate = computed(() => {
                 <span class="placeholder-icon mdi mdi-auto-fix" aria-hidden="true"></span>
                 <span>Evento sem imagem</span>
             </div>
+
+            <span
+                v-if="eventStatus"
+                class="event-status"
+                :class="{ 'event-status--past': eventStatus.includes('já aconteceu') }"
+                role="status"
+            >
+                {{ eventStatus }}
+            </span>
 
             <time v-if="eventDate" class="event-date" :datetime="message.event_date">
                 <span class="mdi mdi-calendar-month-outline" aria-hidden="true"></span>
@@ -174,6 +205,27 @@ const publishedDate = computed(() => {
     font-size: 23px;
 }
 
+.event-status {
+    position: absolute;
+    z-index: 1;
+    top: 12px;
+    right: 12px;
+    max-width: calc(100% - 24px);
+    padding: 7px 10px;
+    border-radius: 6px;
+    background: #0a6a4c;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.45;
+    text-align: center;
+    box-shadow: 0 2px 7px #18332a33;
+}
+
+.event-status--past {
+    background: #745a24;
+}
+
 .event-date {
     position: absolute;
     bottom: 12px;
@@ -281,8 +333,34 @@ const publishedDate = computed(() => {
     text-overflow: ellipsis;
     white-space: nowrap;
 }
-.detail-button { display: flex; align-items: center; gap: 5px; width: fit-content; margin-top: auto; margin-bottom: 8px; padding: 5px 0; border: 0; background: none; color: #0a6a4c; font: inherit; font-size: 11px; font-weight: 700; cursor: pointer; }
-.detail-button:hover { text-decoration: underline; }
-.detail-button:focus-visible { outline: 2px solid #0a6a4c; outline-offset: 3px; border-radius: 3px; }
-.card-footer { margin-top: 0; }
+.detail-button {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    width: fit-content;
+    margin-top: auto;
+    margin-bottom: 8px;
+    padding: 5px 0;
+    border: 0;
+    background: transparent;
+    color: #0a6a4c;
+    font: inherit;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.detail-button:hover {
+    text-decoration: underline;
+}
+
+.detail-button:focus-visible {
+    outline: 2px solid #0a6a4c;
+    outline-offset: 3px;
+    border-radius: 3px;
+}
+
+.card-footer {
+    margin-top: 0;
+}
 </style>
