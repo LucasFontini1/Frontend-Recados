@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import ImageLightbox from './ImageLightbox.vue'
 
 const emit = defineEmits(['open-detail'])
 
@@ -23,6 +24,7 @@ onBeforeUnmount(() => {
 })
 
 const failedImage = ref('')
+const imageViewerOpen = ref(false)
 const imageUrl = computed(() => props.message.image?.url ?? '')
 const hasImage = computed(() => imageUrl.value && failedImage.value !== imageUrl.value)
 const pastoral = computed(() => props.message.pastoral)
@@ -68,10 +70,15 @@ const publishedDate = computed(() => {
 <template>
     <article class="message-card">
         <div class="card-cover">
-            <a v-if="hasImage" class="image-link" :href="imageUrl" target="_blank" rel="noopener noreferrer"
-                :aria-label="`Abrir imagem de ${message.title} em uma nova aba`">
+            <button
+                v-if="hasImage"
+                class="image-link"
+                type="button"
+                :aria-label="`Ampliar imagem de ${message.title}`"
+                @click="imageViewerOpen = true"
+            >
                 <img :src="imageUrl" :alt="message.title" loading="lazy" @error="failedImage = imageUrl" />
-            </a>
+            </button>
             <div v-else class="image-placeholder">
                 <span class="placeholder-icon mdi mdi-auto-fix" aria-hidden="true"></span>
                 <span>Evento sem imagem</span>
@@ -99,7 +106,12 @@ const publishedDate = computed(() => {
                     :title="pastoral.name">
                     {{ pastoral.name }}
                 </span>
-                <span v-if="category" class="tag category-tag" :title="category.name">
+                <span
+                    v-if="category"
+                    class="tag category-tag"
+                    :style="{ '--category-color': category.color || '#009ee9' }"
+                    :title="category.name"
+                >
                     {{ category.name }}
                 </span>
             </div>
@@ -114,6 +126,12 @@ const publishedDate = computed(() => {
             </footer>
         </div>
     </article>
+    <ImageLightbox
+        :open="imageViewerOpen && Boolean(hasImage)"
+        :src="imageUrl"
+        :alt="message.title"
+        @close="imageViewerOpen = false"
+    />
 </template>
 
 <style scoped>
@@ -123,7 +141,7 @@ const publishedDate = computed(() => {
     display: flex;
     flex-direction: column;
     width: 100%;
-    height: 364px;
+    height: 410px;
     overflow: hidden;
     border: 1px solid #d6e1df;
     border-radius: 6px;
@@ -144,6 +162,10 @@ const publishedDate = computed(() => {
     display: block;
     width: 100%;
     height: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: zoom-in;
 }
 
 .image-link:focus-visible {
@@ -254,7 +276,7 @@ const publishedDate = computed(() => {
     flex: 1;
     flex-direction: column;
     min-height: 0;
-    padding: 20px 20px 16px;
+    padding: 18px 20px 14px;
 }
 
 .card-tags {
@@ -285,7 +307,9 @@ const publishedDate = computed(() => {
 }
 
 .category-tag {
-    background: #ecf8ff;
+    border-color: var(--category-color);
+    color: var(--category-color);
+    background: #f5f9f7;
 }
 
 .card-title,
@@ -318,10 +342,11 @@ const publishedDate = computed(() => {
 
 .card-footer {
     display: flex;
+    flex-shrink: 0;
     align-items: center;
     gap: 8px;
     min-height: 36px;
-    margin-top: auto;
+    margin-top: 0;
     padding-top: 12px;
     border-top: 1px solid #d6e1df;
     color: #647273;
@@ -360,7 +385,5 @@ const publishedDate = computed(() => {
     border-radius: 3px;
 }
 
-.card-footer {
-    margin-top: 0;
-}
+
 </style>
