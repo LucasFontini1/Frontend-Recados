@@ -1,11 +1,13 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, watch, ref } from 'vue'
+import ImageLightbox from './ImageLightbox.vue'
 
 const props = defineProps({
   message: { type: Object, default: null },
 })
 const emit = defineEmits(['close'])
 const closeButton = ref(null)
+const imageViewerOpen = ref(false)
 let previousFocus = null
 let previousOverflow = ''
 
@@ -23,9 +25,15 @@ function formatDate(value, withTime = false) {
     : { dateStyle: 'long' }).format(date)
 }
 
-function close() { emit('close') }
+function close() {
+  imageViewerOpen.value = false
+  emit('close')
+}
 function onKeydown(event) {
-  if (event.key === 'Escape') close()
+  if (event.key === 'Escape') {
+    if (imageViewerOpen.value) return
+    close()
+  }
   if (event.key !== 'Tab') return
   const dialog = closeButton.value?.closest('[role="dialog"]')
   if (!dialog) return
@@ -52,6 +60,7 @@ watch(() => props.message, async (message, oldMessage) => {
     closeButton.value?.focus()
   } else if (!message && oldMessage) {
     document.body.style.overflow = previousOverflow
+    imageViewerOpen.value = false
     document.removeEventListener('keydown', onKeydown)
     previousFocus?.focus?.()
   }
@@ -84,15 +93,25 @@ onBeforeUnmount(() => {
             <span v-if="message.pastoral" class="modal-tag" :style="{ '--tag-color': message.pastoral.color || '#0a6a4c' }">
               {{ message.pastoral.name }}
             </span>
-            <span v-if="message.category" class="modal-tag">
+            <span
+              v-if="message.category"
+              class="modal-tag"
+              :style="{ '--tag-color': message.category.color || '#0a6a4c' }"
+            >
               {{ message.category.name }}
             </span>
           </div>
 
-          <a v-if="imageUrl" :href="imageUrl" target="_blank" rel="noopener noreferrer" class="modal-image-link" aria-label="Abrir imagem em tamanho original">
+          <button
+            v-if="imageUrl"
+            type="button"
+            class="modal-image-link"
+            aria-label="Ampliar imagem dentro do aplicativo"
+            @click="imageViewerOpen = true"
+          >
             <img :src="imageUrl" :alt="message.title" class="modal-image" />
-            <small>Toque na imagem para abrir em tamanho original</small>
-          </a>
+            <small>Toque na imagem para ampliar, mover e dar zoom</small>
+          </button>
 
           <div v-if="eventDate && !isNotice" class="modal-event">
             <span class="mdi mdi-calendar-clock" aria-hidden="true"></span>
@@ -108,6 +127,12 @@ onBeforeUnmount(() => {
       </section>
     </div>
   </Teleport>
+  <ImageLightbox
+    :open="imageViewerOpen && Boolean(imageUrl)"
+    :src="imageUrl"
+    :alt="message?.title || 'Imagem do evento'"
+    @close="imageViewerOpen = false"
+  />
 </template>
 
 <style scoped>
@@ -121,7 +146,19 @@ onBeforeUnmount(() => {
 h2 { margin: 0 0 16px; font-size: clamp(21px, 4vw, 28px); line-height: 1.4; overflow-wrap: anywhere; }
 .modal-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
 .modal-tag { padding: 7px 10px; border: 1px solid var(--tag-color, #d5e2dc); border-radius: 7px; color: var(--tag-color, #0a4c34); font-size: 11px; font-weight: 600; }
-.modal-image-link { display: block; margin-bottom: 20px; color: #647273; text-align: center; text-decoration: none; }
+.modal-image-link {
+  display: block;
+  width: 100%;
+  margin-bottom: 20px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #647273;
+  text-align: center;
+  font: inherit;
+  cursor: zoom-in;
+}
+.modal-image-link:focus-visible { outline: 3px solid #0a6a4c; outline-offset: 4px; border-radius: 10px; }
 .modal-image { display: block; max-width: 100%; max-height: 360px; width: 100%; object-fit: contain; border-radius: 10px; background: #edf3f0; }
 .modal-image-link small { display: block; margin-top: 8px; font-size: 10px; }
 .modal-event { display: flex; align-items: start; gap: 12px; margin-bottom: 20px; padding: 15px; border-radius: 10px; background: #edf6f1; color: #0a4c34; }
