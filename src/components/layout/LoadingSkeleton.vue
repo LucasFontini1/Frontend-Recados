@@ -67,7 +67,7 @@ defineProps({
 
 .skeleton-card {
   flex: 0 0 clamp(250px, 31%, 340px);
-  height: 364px;
+  height: 410px;
   overflow: hidden;
   border: 1px solid #d6e1df;
   border-radius: 8px;
