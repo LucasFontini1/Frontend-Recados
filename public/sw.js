@@ -1,6 +1,6 @@
 /* Service Worker do Recados: cache de arquivos públicos, nunca dados de usuários. */
-const CACHE_NAME = 'recados-static-v1'
-const APP_SHELL = ['/offline.html', '/pwa/icon-192.png', '/pwa/icon-512.png']
+const CACHE_NAME = 'recados-static-v2'
+const APP_SHELL = ['/offline.html', '/pwa/icon-192.png', '/pwa/icon-512.png', '/pwa/maskable-512.png']
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
