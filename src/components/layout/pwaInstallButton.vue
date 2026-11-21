@@ -10,6 +10,13 @@ const showInstructions = ref(false)
 const isIOS = ref(false)
 const isMobile = ref(false)
 
+// Em uma aba normal, nem todo navegador informa se o PWA já foi instalado.
+// Só oferecer o botão quando há prompt nativo ou instalação manual no iOS.
+const showInstallButton = computed(() =>
+  !checkingInstallation.value && !installed.value &&
+  (Boolean(installPrompt.value) || isIOS.value)
+)
+
 const hint = computed(() => {
   if (isIOS.value) {
     return 'No Safari, toque em Compartilhar e depois em Adicionar à Tela de Início.'
@@ -105,7 +112,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div v-if="!installed && !checkingInstallation" class="pwa-install">
+  <div v-if="showInstallButton" class="pwa-install">
     <button
       type="button"
       class="install-button"
