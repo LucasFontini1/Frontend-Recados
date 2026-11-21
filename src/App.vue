@@ -4,6 +4,7 @@ import router from './router'
 import appHeader from './components/layout/appHeader.vue'
 import appFooter from './components/layout/appFooter.vue'
 import LoadingSkeleton from './components/layout/LoadingSkeleton.vue'
+import PwaUpdateNotice from './components/layout/PwaUpdateNotice.vue'
 import { useTemplateStore } from './stores/templateStore.js'
 
 const templateStore = useTemplateStore()
@@ -80,6 +81,8 @@ function reloadPage() {
     <RouterView v-else />
     <appFooter />
   </div>
+
+  <PwaUpdateNotice />
 
   <div
     v-if="showLoader"
