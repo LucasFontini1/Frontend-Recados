@@ -3,6 +3,9 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 
 const installPrompt = ref(null)
 const installed = ref(false)
+const checkingInstallation = ref(true)
+const knownInstalled = ref(false)
+let displayModeQuery = null
 const showInstructions = ref(false)
 const isIOS = ref(false)
 const isMobile = ref(false)
@@ -17,20 +20,48 @@ const hint = computed(() => {
   return 'Procure o ícone de instalação na barra de endereços ou a opção Instalar no menu do navegador.'
 })
 
-function checkInstalled() {
-  installed.value =
-    window.matchMedia('(display-mode: standalone)').matches ||
+async function checkInstalled() {
+  const standalone = window.matchMedia('(display-mode: standalone)').matches ||
+    window.matchMedia('(display-mode: fullscreen)').matches ||
     window.navigator.standalone === true
+
+  // getInstalledRelatedApps é suportado somente por alguns navegadores.
+  // Em outros, não existe API que confirme se o PWA está instalado em
+  // uma janela normal do navegador.
+  let relatedInstalled = false
+  if (typeof navigator.getInstalledRelatedApps === 'function') {
+    try {
+      const apps = await navigator.getInstalledRelatedApps()
+      relatedInstalled = apps.some(app =>
+        app.platform === 'webapp' ||
+        app.url === window.location.origin + '/'
+      )
+    } catch {
+      // A ausência dessa informação não deve impedir a instalação.
+    }
+  }
+
+  const previouslyInstalled = localStorage.getItem('recados_pwa_installed') === 'true'
+  knownInstalled.value = standalone || relatedInstalled || previouslyInstalled
+  installed.value = knownInstalled.value
+  checkingInstallation.value = false
 }
 
 function onInstallAvailable(event) {
   event.preventDefault()
+  // Se o navegador oferecer uma nova instalação, a instalação anterior
+  // pode ter sido removida. Permite instalar novamente nesse caso.
+  knownInstalled.value = false
+  installed.value = false
+  localStorage.removeItem('recados_pwa_installed')
   installPrompt.value = event
   showInstructions.value = false
 }
 
 function onInstalled() {
   installed.value = true
+  knownInstalled.value = true
+  localStorage.setItem('recados_pwa_installed', 'true')
   installPrompt.value = null
   showInstructions.value = false
 }
@@ -42,7 +73,7 @@ async function install() {
     await prompt.prompt()
     const choice = await prompt.userChoice
     if (choice?.outcome === 'accepted') {
-      showInstructions.value = false
+      onInstalled()
     }
     return
   }
@@ -54,6 +85,10 @@ onMounted(() => {
   isIOS.value = /iPad|iPhone|iPod/i.test(navigator.userAgent) ||
     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
   isMobile.value = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+  displayModeQuery = window.matchMedia('(display-mode: standalone)')
+  displayModeQuery.addEventListener('change', checkInstalled)
+  window.addEventListener('focus', checkInstalled)
+  window.addEventListener('pageshow', checkInstalled)
   checkInstalled()
 
   window.addEventListener('beforeinstallprompt', onInstallAvailable)
@@ -61,13 +96,16 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  displayModeQuery?.removeEventListener('change', checkInstalled)
+  window.removeEventListener('focus', checkInstalled)
+  window.removeEventListener('pageshow', checkInstalled)
   window.removeEventListener('beforeinstallprompt', onInstallAvailable)
   window.removeEventListener('appinstalled', onInstalled)
 })
 </script>
 
 <template>
-  <div v-if="!installed" class="pwa-install">
+  <div v-if="!installed && !checkingInstallation" class="pwa-install">
     <button
       type="button"
       class="install-button"
