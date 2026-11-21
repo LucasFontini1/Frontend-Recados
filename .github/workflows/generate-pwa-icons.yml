@@ -1,0 +1,71 @@
+name: Atualizar ícones do PWA
+
+on:
+  push:
+    paths:
+      - ".github/workflows/generate-pwa-icons.yml"
+      - "public/pwa/logo-comunidade.png"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  generate-icons:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar Pillow
+        run: python -m pip install Pillow==11.3.0
+
+      - name: Gerar ícones 192, 512 e maskable
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image, ImageOps
+
+          source = Image.open("public/pwa/logo-comunidade.png").convert("RGBA")
+          destination = Path("public/pwa")
+          destination.mkdir(parents=True, exist_ok=True)
+
+          def save_icon(size, name, safe_area=False):
+              # Mantém a logo inteira dentro da área segura dos ícones Android.
+              margin_ratio = 0.78 if safe_area else 0.96
+              inner_size = round(size * margin_ratio)
+              logo = ImageOps.contain(
+                  source,
+                  (inner_size, inner_size),
+                  Image.Resampling.LANCZOS,
+              )
+              background = Image.new("RGBA", (size, size), "#ffffff")
+              position = ((size - logo.width) // 2, (size - logo.height) // 2)
+              background.alpha_composite(logo, dest=position)
+              background.convert("RGB").save(
+                  destination / name, format="PNG", optimize=True
+              )
+
+          save_icon(192, "icon-192.png")
+          save_icon(512, "icon-512.png")
+          save_icon(512, "maskable-512.png", safe_area=True)
+          PY
+
+      - name: Salvar ícones no repositório
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/pwa/icon-192.png public/pwa/icon-512.png public/pwa/maskable-512.png
+          if git diff --cached --quiet; then
+            echo "Os ícones já estão atualizados."
+            exit 0
+          fi
+          git commit -m "assets: gerar ícones PWA usando logo da comunidade"
+          git push
