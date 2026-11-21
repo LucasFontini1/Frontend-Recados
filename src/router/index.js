@@ -14,6 +14,7 @@ const router = createRouter({
     { path: '/login', name: 'login', component: () => import('@/views/loginRegisterView.vue') },
     { path: '/termos-de-uso', name: 'terms', component: () => import('@/views/termsOfUseView.vue') },
     { path: '/politica-de-privacidade', name: 'privacy', component: () => import('@/views/privacyPolicyView.vue') },
+    { path: '/:pathMatch(.*)*', name: 'not-found', component: () => import('@/views/notFoundView.vue') },
   ],
 })
 
