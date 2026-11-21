@@ -1,12 +1,19 @@
 /* Service Worker do Recados: cache de arquivos públicos, nunca dados de usuários. */
-const CACHE_NAME = 'recados-static-v2'
+// O Vite substitui o identificador a cada build de produção.
+const CACHE_NAME = 'recados-static-__REC_BUILD_ID__'
 const APP_SHELL = ['/offline.html', '/pwa/icon-192.png', '/pwa/icon-512.png', '/pwa/maskable-512.png']
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL))
   )
-  self.skipWaiting()
+})
+
+// Uma atualização não interrompe formulários: ativa apenas após confirmação.
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') {
+    self.skipWaiting()
+  }
 })
 
 self.addEventListener('activate', (event) => {
