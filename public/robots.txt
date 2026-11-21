@@ -1,0 +1,9 @@
+# Permitir rastreamento das páginas públicas do Recados.
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+Disallow: /login
+Disallow: /perguntas
+
+Sitemap: https://nossa-senhora-dos-migrantes-recados.vercel.app/sitemap.xml
