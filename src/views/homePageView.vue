@@ -43,15 +43,20 @@ onMounted(async () => {
 import appWelcome from '@/components/layout/appWelcome.vue'
 import pastoralFilterComponent from '@/components/filters/pastoralFilterComponent.vue'
 import categoryFilterComponent from '@/components/filters/categoryFilterComponent.vue'
-import MessageListComponent from '@/components/lists/MessageListComponent.vue';
-import generalNoticesListComponent from '@/components/lists/generalNoticesListComponent.vue';
+import MessageListComponent from '@/components/lists/MessageListComponent.vue'
+import generalNoticesListComponent from '@/components/lists/generalNoticesListComponent.vue'
 import messageDetailModal from '@/components/cards/messageDetailModal.vue'
 </script>
 
 <template>
   <div class="page">
     <appWelcome />
-    <LoadingSkeleton v-if="loadingHome && !pastoralStore.pastorals.length && !categoryStore.categories.length" class="filter-skeleton" variant="filters" :count="2" />
+    <LoadingSkeleton
+      v-if="loadingHome && !pastoralStore.pastorals.length && !categoryStore.categories.length"
+      class="filter-skeleton"
+      variant="filters"
+      :count="2"
+    />
     <div v-else class="filters">
       <pastoralFilterComponent />
       <categoryFilterComponent />
@@ -59,15 +64,30 @@ import messageDetailModal from '@/components/cards/messageDetailModal.vue'
     <p v-if="homeError" class="home-error" role="alert">
       Não foi possível atualizar todas as informações. Verifique a conexão e recarregue a página.
     </p>
-    <MessageListComponent :loading="loadingHome && !messageStore.messages.length" @open-detail="selectedMessage = $event" />
-    <generalNoticesListComponent :loading="loadingHome && !messageStore.notices.length" @open-detail="selectedMessage = $event" />
+    <MessageListComponent
+      :loading="loadingHome && !messageStore.messages.length"
+      @open-detail="selectedMessage = $event"
+    />
+    <generalNoticesListComponent
+      :loading="loadingHome && !messageStore.notices.length"
+      @open-detail="selectedMessage = $event"
+    />
     <message-detail-modal :message="selectedMessage" @close="selectedMessage = null" />
   </div>
 </template>
 
 <style scoped>
-.filter-skeleton { margin: 24px 0; }
-.home-error { padding: 12px 16px; border-radius: 8px; color: #962d25; background: #fff0ef; font-size: 13px; line-height: 1.6; }
+.filter-skeleton {
+  margin: 24px 0;
+}
+.home-error {
+  padding: 12px 16px;
+  border-radius: 8px;
+  color: #962d25;
+  background: #fff0ef;
+  font-size: 13px;
+  line-height: 1.6;
+}
 
 .filters {
   min-width: 0;
@@ -78,7 +98,17 @@ import messageDetailModal from '@/components/cards/messageDetailModal.vue'
 }
 
 @media (max-width: 600px) {
-  .filters { flex-direction: column; align-items: stretch; gap: 12px; margin: 18px 0 24px; }
-  .filters :deep(.pastoral-filter), .filters :deep(.category-filter) { width: 100%; min-width: 0; margin-top: 0; }
+  .filters {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    margin: 18px 0 24px;
+  }
+  .filters :deep(.pastoral-filter),
+  .filters :deep(.category-filter) {
+    width: 100%;
+    min-width: 0;
+    margin-top: 0;
+  }
 }
 </style>

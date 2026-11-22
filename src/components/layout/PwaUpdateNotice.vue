@@ -133,14 +133,12 @@ onBeforeUnmount(() => {
     <div class="update-details">
       <strong>Nova versão do Recados disponível!</strong>
       <p>
-        Atualize para receber as melhorias. Se estiver preenchendo algo,
-        você pode escolher atualizar depois.
+        Atualize para receber as melhorias. Se estiver preenchendo algo, você pode escolher
+        atualizar depois.
       </p>
 
       <div class="update-actions">
-        <button class="later-button" type="button" @click="remindLater">
-          Depois
-        </button>
+        <button class="later-button" type="button" @click="remindLater">Depois</button>
         <button class="update-button" type="button" @click="updateNow">
           <span class="mdi mdi-refresh" aria-hidden="true"></span>
           Atualizar agora
@@ -234,7 +232,7 @@ onBeforeUnmount(() => {
 }
 
 .update-actions button:hover {
-  filter: brightness(.95);
+  filter: brightness(0.95);
 }
 
 .update-actions button:focus-visible {

@@ -1,4 +1,3 @@
-
 <script setup>
 import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
 import { usePastoralStore } from '@/stores/pastoralStore'
@@ -13,9 +12,7 @@ const isOpen = ref(false)
 // Dados compartilhados que vêm da store
 const pastorals = computed(() => pastoralStore.pastorals)
 
-const selectedPastoral = computed(
-  () => pastoralStore.selectedPastoral,
-)
+const selectedPastoral = computed(() => pastoralStore.selectedPastoral)
 
 // Pesquisa as pastorais pelo nome
 const filteredPastorals = computed(() => {
@@ -112,30 +109,15 @@ onUnmounted(() => {
       </button>
 
       <!-- Lista de pastorais -->
-      <ul
-        v-if="isOpen"
-        id="pastoral-options"
-        class="options"
-      >
+      <ul v-if="isOpen" id="pastoral-options" class="options">
         <li>
-          <button
-            type="button"
-            class="option-button"
-            @click="selectPastoral(null)"
-          >
+          <button type="button" class="option-button" @click="selectPastoral(null)">
             Todas as pastorais
           </button>
         </li>
 
-        <li
-          v-for="pastoral in filteredPastorals"
-          :key="pastoral.id"
-        >
-          <button
-            type="button"
-            class="option-button"
-            @click="selectPastoral(pastoral)"
-          >
+        <li v-for="pastoral in filteredPastorals" :key="pastoral.id">
+          <button type="button" class="option-button" @click="selectPastoral(pastoral)">
             <span
               class="circle"
               :style="{
@@ -147,12 +129,7 @@ onUnmounted(() => {
           </button>
         </li>
 
-        <li
-          v-if="filteredPastorals.length === 0"
-          class="empty"
-        >
-          Nenhuma pastoral encontrada
-        </li>
+        <li v-if="filteredPastorals.length === 0" class="empty">Nenhuma pastoral encontrada</li>
       </ul>
 
       <!-- Mensagem de erro -->

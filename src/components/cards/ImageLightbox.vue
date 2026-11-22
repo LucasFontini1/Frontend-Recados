@@ -91,7 +91,7 @@ function onPointerMove(event) {
   if (pointers.size === 2 && pinchOrigin) {
     const [a, b] = [...pointers.values()]
     const distance = Math.hypot(a.x - b.x, a.y - b.y)
-    setZoom(pinchOrigin.zoom * distance / (pinchOrigin.distance || 1))
+    setZoom((pinchOrigin.zoom * distance) / (pinchOrigin.distance || 1))
   } else if (pointers.size === 1 && zoom.value > 1 && dragOrigin) {
     offset.value = { x: event.clientX - dragOrigin.x, y: event.clientY - dragOrigin.y }
   }
@@ -143,15 +143,30 @@ onBeforeUnmount(() => {
 <template>
   <Teleport to="body">
     <div v-if="open" class="lightbox-overlay" @click.self="close">
-      <section class="lightbox-panel" role="dialog" aria-modal="true" aria-label="Visualizador de imagem">
+      <section
+        class="lightbox-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Visualizador de imagem"
+      >
         <header class="lightbox-toolbar">
           <span class="lightbox-title">Visualizar imagem</span>
           <div class="lightbox-actions">
-            <button type="button" aria-label="Diminuir zoom" :disabled="zoom <= 1" @click="setZoom(zoom - 0.25)">
+            <button
+              type="button"
+              aria-label="Diminuir zoom"
+              :disabled="zoom <= 1"
+              @click="setZoom(zoom - 0.25)"
+            >
               <span class="mdi mdi-minus" aria-hidden="true"></span>
             </button>
             <span class="zoom-value" aria-live="polite">{{ Math.round(zoom * 100) }}%</span>
-            <button type="button" aria-label="Aumentar zoom" :disabled="zoom >= 4" @click="setZoom(zoom + 0.25)">
+            <button
+              type="button"
+              aria-label="Aumentar zoom"
+              :disabled="zoom >= 4"
+              @click="setZoom(zoom + 0.25)"
+            >
               <span class="mdi mdi-plus" aria-hidden="true"></span>
             </button>
             <button type="button" aria-label="Restaurar zoom" @click="resetZoom">
@@ -174,7 +189,9 @@ onBeforeUnmount(() => {
         >
           <img :src="src" :alt="alt" :style="imageStyle" draggable="false" />
         </div>
-        <p class="lightbox-hint">Use a roda do mouse, os botões ou dois dedos para ampliar. Arraste para mover a imagem.</p>
+        <p class="lightbox-hint">
+          Use a roda do mouse, os botões ou dois dedos para ampliar. Arraste para mover a imagem.
+        </p>
       </section>
     </div>
   </Teleport>
@@ -188,7 +205,7 @@ onBeforeUnmount(() => {
   display: grid;
   place-items: center;
   padding: 12px;
-  background: rgba(8, 21, 16, .94);
+  background: rgba(8, 21, 16, 0.94);
 }
 
 .lightbox-panel {
@@ -215,7 +232,10 @@ onBeforeUnmount(() => {
   border-bottom: 1px solid #ffffff2b;
 }
 
-.lightbox-title { font-size: 12px; font-weight: 700; }
+.lightbox-title {
+  font-size: 12px;
+  font-weight: 700;
+}
 
 .lightbox-actions {
   display: flex;
@@ -237,9 +257,19 @@ onBeforeUnmount(() => {
   cursor: pointer;
 }
 
-.lightbox-actions button:disabled { opacity: .4; cursor: not-allowed; }
-.lightbox-actions button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
-.zoom-value { min-width: 50px; text-align: center; font-size: 12px; }
+.lightbox-actions button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.lightbox-actions button:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+.zoom-value {
+  min-width: 50px;
+  text-align: center;
+  font-size: 12px;
+}
 
 .image-viewport {
   display: grid;
@@ -273,11 +303,26 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 540px) {
-  .lightbox-overlay { padding: 0; }
-  .lightbox-panel { width: 100%; height: 100dvh; border-radius: 0; }
-  .lightbox-toolbar { padding: 8px; }
-  .lightbox-title { display: none; }
-  .lightbox-actions { width: 100%; justify-content: flex-end; }
-  .lightbox-hint { font-size: 10px; }
+  .lightbox-overlay {
+    padding: 0;
+  }
+  .lightbox-panel {
+    width: 100%;
+    height: 100dvh;
+    border-radius: 0;
+  }
+  .lightbox-toolbar {
+    padding: 8px;
+  }
+  .lightbox-title {
+    display: none;
+  }
+  .lightbox-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+  .lightbox-hint {
+    font-size: 10px;
+  }
 }
 </style>

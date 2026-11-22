@@ -12,9 +12,11 @@ const isMobile = ref(false)
 
 // Em uma aba normal, nem todo navegador informa se o PWA já foi instalado.
 // Só oferecer o botão quando há prompt nativo ou instalação manual no iOS.
-const showInstallButton = computed(() =>
-  !checkingInstallation.value && !installed.value &&
-  (Boolean(installPrompt.value) || isIOS.value)
+const showInstallButton = computed(
+  () =>
+    !checkingInstallation.value &&
+    !installed.value &&
+    (Boolean(installPrompt.value) || isIOS.value),
 )
 
 const hint = computed(() => {
@@ -28,7 +30,8 @@ const hint = computed(() => {
 })
 
 async function checkInstalled() {
-  const standalone = window.matchMedia('(display-mode: standalone)').matches ||
+  const standalone =
+    window.matchMedia('(display-mode: standalone)').matches ||
     window.matchMedia('(display-mode: fullscreen)').matches ||
     window.navigator.standalone === true
 
@@ -39,9 +42,8 @@ async function checkInstalled() {
   if (typeof navigator.getInstalledRelatedApps === 'function') {
     try {
       const apps = await navigator.getInstalledRelatedApps()
-      relatedInstalled = apps.some(app =>
-        app.platform === 'webapp' ||
-        app.url === window.location.origin + '/'
+      relatedInstalled = apps.some(
+        (app) => app.platform === 'webapp' || app.url === window.location.origin + '/',
       )
     } catch {
       // A ausência dessa informação não deve impedir a instalação.
@@ -89,7 +91,8 @@ async function install() {
 }
 
 onMounted(() => {
-  isIOS.value = /iPad|iPhone|iPod/i.test(navigator.userAgent) ||
+  isIOS.value =
+    /iPad|iPhone|iPod/i.test(navigator.userAgent) ||
     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
   isMobile.value = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
   displayModeQuery = window.matchMedia('(display-mode: standalone)')
@@ -113,21 +116,14 @@ onBeforeUnmount(() => {
 
 <template>
   <div v-if="showInstallButton" class="pwa-install">
-    <button
-      type="button"
-      class="install-button"
-      :aria-expanded="showInstructions"
-      @click="install"
-    >
+    <button type="button" class="install-button" :aria-expanded="showInstructions" @click="install">
       <span class="mdi mdi-download" aria-hidden="true"></span>
       <span>Instalar aplicativo</span>
     </button>
 
     <div v-if="showInstructions" class="install-help" role="status">
       <p>{{ hint }}</p>
-      <button type="button" class="close-help" @click="showInstructions = false">
-        Fechar
-      </button>
+      <button type="button" class="close-help" @click="showInstructions = false">Fechar</button>
     </div>
   </div>
 </template>

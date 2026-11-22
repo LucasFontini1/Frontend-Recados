@@ -5,7 +5,11 @@ import { computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
 
 const auth = useAuthStore()
-const isAdmin = computed(() => auth.user?.is_superuser || auth.user?.groups?.some((group) => ['admin', 'superadmin'].includes(group.name)))
+const isAdmin = computed(
+  () =>
+    auth.user?.is_superuser ||
+    auth.user?.groups?.some((group) => ['admin', 'superadmin'].includes(group.name)),
+)
 onMounted(() => {
   auth.refreshUserSession().catch(() => {
     // Erros de conexão não impedem a leitura dos recados públicos.
@@ -29,7 +33,9 @@ function logout() {
       </div>
       <nav class="security" aria-label="Menu principal">
         <RouterLink to="/perguntas" class="header-link">Pergunte à diretoria</RouterLink>
-        <RouterLink v-if="auth.isAuthenticated && isAdmin" to="/admin" class="header-link">Administração</RouterLink>
+        <RouterLink v-if="auth.isAuthenticated && isAdmin" to="/admin" class="header-link"
+          >Administração</RouterLink
+        >
         <PwaInstallButton />
         <button v-if="!auth.isAuthenticated" @click="router.push('/login')">
           <span class="mdi mdi-security"></span><span class="enter">Entrar</span>
@@ -106,16 +112,36 @@ nav.security {
   text-decoration: none;
   white-space: nowrap;
 }
-.header-link:hover { background: #e8f0eb; }
+.header-link:hover {
+  background: #e8f0eb;
+}
 @media (max-width: 900px) {
-  div.total { width: 100%; gap: 14px; padding: 12px 16px; }
-  div.logo h1 { font-size: 19px; }
-  div.logo p { font-size: 12px; }
-  nav.security { gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+  div.total {
+    width: 100%;
+    gap: 14px;
+    padding: 12px 16px;
+  }
+  div.logo h1 {
+    font-size: 19px;
+  }
+  div.logo p {
+    font-size: 12px;
+  }
+  nav.security {
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
 }
 @media (max-width: 700px) {
-  nav.security { flex-wrap: wrap; justify-content: flex-end; }
-  .header-link { font-size: 11px; padding: 8px; }
+  nav.security {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .header-link {
+    font-size: 11px;
+    padding: 8px;
+  }
   div.total {
     width: 100%;
     gap: 12px;
@@ -139,20 +165,54 @@ nav.security {
   }
 }
 @media (max-width: 520px) {
-  div.total { flex-direction: column; align-items: stretch; gap: 12px; padding: 12px; }
-  div.logo { gap: 10px; }
-  div.logo img { width: 46px; }
-  div.logo .text { min-width: 0; }
-  div.logo h1 { font-size: 16px; line-height: 1.3; }
-  div.logo p { font-size: 11px; line-height: 1.4; }
-  nav.security { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-  nav.security .header-link, nav.security button {
-    width: 100%; min-height: 42px; box-sizing: border-box;
-    justify-content: center; align-items: center; padding: 8px; text-align: center;
-    white-space: normal; font-size: 12px;
+  div.total {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 12px;
   }
-  nav.security button { border-radius: 9px; }
-  nav.security > button:last-child { grid-column: 1 / -1; }
-  nav.security :deep(.pwa-install) { min-width: 0; }
+  div.logo {
+    gap: 10px;
+  }
+  div.logo img {
+    width: 46px;
+  }
+  div.logo .text {
+    min-width: 0;
+  }
+  div.logo h1 {
+    font-size: 16px;
+    line-height: 1.3;
+  }
+  div.logo p {
+    font-size: 11px;
+    line-height: 1.4;
+  }
+  nav.security {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  nav.security .header-link,
+  nav.security button {
+    width: 100%;
+    min-height: 42px;
+    box-sizing: border-box;
+    justify-content: center;
+    align-items: center;
+    padding: 8px;
+    text-align: center;
+    white-space: normal;
+    font-size: 12px;
+  }
+  nav.security button {
+    border-radius: 9px;
+  }
+  nav.security > button:last-child {
+    grid-column: 1 / -1;
+  }
+  nav.security :deep(.pwa-install) {
+    min-width: 0;
+  }
 }
 </style>

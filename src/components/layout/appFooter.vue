@@ -10,9 +10,7 @@ const year = new Date().getFullYear()
       <div class="footer-main">
         <div class="community">
           <p class="footer-title">Nossa Senhora dos Migrantes</p>
-          <p class="footer-description">
-            Um espaço de encontro e comunicação da comunidade.
-          </p>
+          <p class="footer-description">Um espaço de encontro e comunicação da comunidade.</p>
 
           <a
             class="footer-link footer-link--icon"
@@ -41,9 +39,7 @@ const year = new Date().getFullYear()
 
         <div class="footer-legal">
           <p class="footer-heading">Informações legais</p>
-          <RouterLink class="footer-link" to="/termos-de-uso">
-            Termos de Uso
-          </RouterLink>
+          <RouterLink class="footer-link" to="/termos-de-uso"> Termos de Uso </RouterLink>
           <RouterLink class="footer-link" to="/politica-de-privacidade">
             Política de Privacidade
           </RouterLink>
@@ -51,12 +47,8 @@ const year = new Date().getFullYear()
       </div>
 
       <div class="footer-bottom">
-        <span>
-          © {{ year }} Nossa Senhora dos Migrantes. Todos os direitos reservados.
-        </span>
-        <span>
-          Desenvolvido por <strong>Lucas Fontini da Luz</strong>
-        </span>
+        <span> © {{ year }} Nossa Senhora dos Migrantes. Todos os direitos reservados. </span>
+        <span> Desenvolvido por <strong>Lucas Fontini da Luz</strong> </span>
       </div>
     </div>
   </footer>

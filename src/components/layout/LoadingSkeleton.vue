@@ -3,7 +3,7 @@ defineProps({
   variant: {
     type: String,
     default: 'cards',
-    validator: value => ['cards', 'filters', 'rows'].includes(value),
+    validator: (value) => ['cards', 'filters', 'rows'].includes(value),
   },
   count: {
     type: Number,
@@ -98,10 +98,21 @@ defineProps({
   padding: 20px;
 }
 
-.skeleton-tag { width: 37%; height: 23px; }
-.skeleton-title { width: 77%; height: 20px; }
-.skeleton-line { width: 100%; height: 12px; }
-.skeleton-line--short { width: 58%; }
+.skeleton-tag {
+  width: 37%;
+  height: 23px;
+}
+.skeleton-title {
+  width: 77%;
+  height: 20px;
+}
+.skeleton-line {
+  width: 100%;
+  height: 12px;
+}
+.skeleton-line--short {
+  width: 58%;
+}
 
 .skeleton--filters {
   display: flex;
@@ -143,10 +154,15 @@ defineProps({
   background: #fff;
 }
 
-.skeleton-row-title { width: 42%; height: 18px; }
+.skeleton-row-title {
+  width: 42%;
+  height: 18px;
+}
 
 @keyframes skeleton-shimmer {
-  to { background-position-x: -250%; }
+  to {
+    background-position-x: -250%;
+  }
 }
 
 .sr-only {
@@ -159,15 +175,32 @@ defineProps({
 }
 
 @media (max-width: 600px) {
-  .skeleton--cards { gap: 12px; }
-  .skeleton-card { flex-basis: min(86vw, 320px); }
-  .skeleton--filters { flex-direction: column; }
-  .skeleton-field { width: 100%; flex-direction: column; align-items: stretch; gap: 8px; }
-  .skeleton-label { width: 35%; }
-  .skeleton-input { width: 100%; }
+  .skeleton--cards {
+    gap: 12px;
+  }
+  .skeleton-card {
+    flex-basis: min(86vw, 320px);
+  }
+  .skeleton--filters {
+    flex-direction: column;
+  }
+  .skeleton-field {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .skeleton-label {
+    width: 35%;
+  }
+  .skeleton-input {
+    width: 100%;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .skeleton-block { animation: none; }
+  .skeleton-block {
+    animation: none;
+  }
 }
 </style>

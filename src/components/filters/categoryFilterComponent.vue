@@ -107,17 +107,12 @@ onUnmounted(() => {
 
         <li v-for="category in filteredCategories" :key="category.id">
           <button type="button" class="option-button" @click="selectCategory(category)">
-            <span
-              class="circle"
-              :style="{ backgroundColor: category.color }"
-            ></span>
+            <span class="circle" :style="{ backgroundColor: category.color }"></span>
             {{ category.name }}
           </button>
         </li>
 
-        <li v-if="filteredCategories.length === 0" class="empty">
-          Nenhuma categoria encontrada
-        </li>
+        <li v-if="filteredCategories.length === 0" class="empty">Nenhuma categoria encontrada</li>
       </ul>
 
       <p v-if="categoryStore.haveError" class="error">

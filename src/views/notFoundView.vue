@@ -18,8 +18,8 @@ const route = useRoute()
       <p class="error-code">404</p>
       <h1 id="not-found-title">Página não encontrada</h1>
       <p class="description">
-        Não encontramos a página que você tentou acessar.
-        O endereço pode estar incorreto ou o conteúdo pode ter sido movido.
+        Não encontramos a página que você tentou acessar. O endereço pode estar incorreto ou o
+        conteúdo pode ter sido movido.
       </p>
 
       <p class="missing-path">

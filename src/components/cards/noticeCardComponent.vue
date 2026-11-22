@@ -29,7 +29,9 @@ const publishedDate = computed(() => {
 
     <footer class="card-footer">
       <div class="footer-info">
-        <span v-if="pastoral?.name" class="pastoral-name" :title="pastoral.name">{{ pastoral.name }}</span>
+        <span v-if="pastoral?.name" class="pastoral-name" :title="pastoral.name">{{
+          pastoral.name
+        }}</span>
         <span v-if="pastoral?.name && (authorName || category?.name)" aria-hidden="true">·</span>
         <span v-if="authorName || category?.name" class="footer-description">
           {{ authorName || category.name }}
@@ -114,8 +116,13 @@ const publishedDate = computed(() => {
   font-weight: 700;
   cursor: pointer;
 }
-.detail-button:hover { text-decoration: underline; }
-.detail-button:focus-visible { outline: 2px solid #0a6a4c; outline-offset: 3px; }
+.detail-button:hover {
+  text-decoration: underline;
+}
+.detail-button:focus-visible {
+  outline: 2px solid #0a6a4c;
+  outline-offset: 3px;
+}
 .card-footer {
   display: flex;
   align-items: center;
@@ -137,16 +144,31 @@ const publishedDate = computed(() => {
   overflow: hidden;
   white-space: nowrap;
 }
-.pastoral-name, .footer-description {
+.pastoral-name,
+.footer-description {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.pastoral-name { flex-shrink: 0; max-width: 45%; color: var(--notice-accent); font-weight: 700; }
-.footer-description { min-width: 0; }
-.card-footer time { flex-shrink: 0; white-space: nowrap; }
+.pastoral-name {
+  flex-shrink: 0;
+  max-width: 45%;
+  color: var(--notice-accent);
+  font-weight: 700;
+}
+.footer-description {
+  min-width: 0;
+}
+.card-footer time {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
 @media (max-width: 600px) {
-  .card-main { padding: 16px 15px 8px; }
-  .card-footer { margin: 0 15px; }
+  .card-main {
+    padding: 16px 15px 8px;
+  }
+  .card-footer {
+    margin: 0 15px;
+  }
 }
 </style>
